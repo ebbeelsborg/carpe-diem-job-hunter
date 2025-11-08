@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { ApplicationCard } from "@/components/application-card";
 import { AddApplicationModal } from "@/components/add-application-modal";
 import { Button } from "@/components/ui/button";
@@ -12,94 +13,50 @@ import {
 } from "@/components/ui/select";
 import { Search, Plus, Briefcase } from "lucide-react";
 import type { Application, InsertApplication } from "@shared/schema";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Applications() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const { toast } = useToast();
 
-  // TODO: remove mock functionality - replace with real data fetching
-  const mockApplications: Application[] = [
-    {
-      id: "1",
-      userId: "user1",
-      companyName: "TechCorp",
-      positionTitle: "Senior Frontend Engineer",
-      jobUrl: null,
-      logoUrl: null,
-      status: "phone_screen",
-      salaryMin: 120000,
-      salaryMax: 160000,
-      location: "San Francisco, CA",
-      isRemote: true,
-      applicationDate: new Date("2024-01-15"),
-      notes: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+  const { data: applications = [], isLoading } = useQuery<Application[]>({
+    queryKey: ["/api/applications", statusFilter, searchTerm],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (statusFilter !== "all") params.append("status", statusFilter);
+      if (searchTerm) params.append("search", searchTerm);
+      const response = await fetch(`/api/applications?${params}`);
+      if (!response.ok) throw new Error("Failed to fetch applications");
+      return response.json();
     },
-    {
-      id: "2",
-      userId: "user1",
-      companyName: "DataFlow Inc",
-      positionTitle: "Full Stack Developer",
-      jobUrl: null,
-      logoUrl: null,
-      status: "technical",
-      salaryMin: 130000,
-      salaryMax: 170000,
-      location: "Remote",
-      isRemote: true,
-      applicationDate: new Date("2024-01-20"),
-      notes: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "3",
-      userId: "user1",
-      companyName: "CloudScale",
-      positionTitle: "DevOps Engineer",
-      jobUrl: null,
-      logoUrl: null,
-      status: "offer",
-      salaryMin: 140000,
-      salaryMax: 180000,
-      location: "Austin, TX",
-      isRemote: false,
-      applicationDate: new Date("2024-01-10"),
-      notes: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "4",
-      userId: "user1",
-      companyName: "StartupXYZ",
-      positionTitle: "Lead Engineer",
-      jobUrl: null,
-      logoUrl: null,
-      status: "applied",
-      salaryMin: 150000,
-      salaryMax: 200000,
-      location: "New York, NY",
-      isRemote: true,
-      applicationDate: new Date("2024-01-25"),
-      notes: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ];
+  });
 
-  const filteredApplications = mockApplications.filter((app) => {
-    const matchesSearch = app.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.positionTitle.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || app.status === statusFilter;
-    return matchesSearch && matchesStatus;
+  const createMutation = useMutation({
+    mutationFn: async (data: InsertApplication) => {
+      return await apiRequest("POST", "/api/applications", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/applications/stats"] });
+      toast({
+        title: "Success",
+        description: "Application added successfully!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add application",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleAddApplication = (data: InsertApplication) => {
-    console.log("Adding application:", data);
-    // TODO: remove mock functionality - implement actual API call
+    createMutation.mutate(data);
   };
 
   return (
@@ -146,7 +103,11 @@ export default function Applications() {
         </Select>
       </div>
 
-      {filteredApplications.length === 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center py-24">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      ) : applications.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <Briefcase className="h-16 w-16 text-muted-foreground mb-4" />
           <h3 className="text-xl font-semibold mb-2">No applications found</h3>
@@ -162,7 +123,7 @@ export default function Applications() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredApplications.map((app) => (
+          {applications.map((app) => (
             <ApplicationCard
               key={app.id}
               application={app}

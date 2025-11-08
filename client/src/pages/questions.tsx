@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,44 +18,16 @@ export default function Questions() {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
-  // TODO: remove mock functionality - replace with real data fetching
-  const mockQuestions: Question[] = [
-    {
-      id: "1",
-      userId: "user1",
-      questionText: "Tell me about a time when you had to deal with a difficult team member",
-      answerText: "In my previous role, I worked with a colleague who was resistant to code reviews...",
-      questionType: "behavioral",
-      isFavorite: true,
-      tags: ["teamwork", "conflict-resolution"],
-      createdAt: new Date(),
+  const { data: questions = [], isLoading } = useQuery<Question[]>({
+    queryKey: ["/api/questions", typeFilter, searchTerm],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (typeFilter !== "all") params.append("type", typeFilter);
+      if (searchTerm) params.append("search", searchTerm);
+      const response = await fetch(`/api/questions?${params}`);
+      if (!response.ok) throw new Error("Failed to fetch questions");
+      return response.json();
     },
-    {
-      id: "2",
-      userId: "user1",
-      questionText: "How would you design a URL shortener?",
-      answerText: "I would start by considering the scale requirements...",
-      questionType: "system_design",
-      isFavorite: true,
-      tags: ["scalability", "databases"],
-      createdAt: new Date(),
-    },
-    {
-      id: "3",
-      userId: "user1",
-      questionText: "Implement a function to reverse a linked list",
-      answerText: "Here's my approach using iterative method...",
-      questionType: "technical",
-      isFavorite: false,
-      tags: ["data-structures", "algorithms"],
-      createdAt: new Date(),
-    },
-  ];
-
-  const filteredQuestions = mockQuestions.filter((q) => {
-    const matchesSearch = q.questionText.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = typeFilter === "all" || q.questionType === typeFilter;
-    return matchesSearch && matchesType;
   });
 
   return (
@@ -97,7 +70,11 @@ export default function Questions() {
         </Select>
       </div>
 
-      {filteredQuestions.length === 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center py-24">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      ) : questions.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <Lightbulb className="h-16 w-16 text-muted-foreground mb-4" />
           <h3 className="text-xl font-semibold mb-2">No questions found</h3>
@@ -113,7 +90,7 @@ export default function Questions() {
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredQuestions.map((question) => (
+          {questions.map((question) => (
             <Card
               key={question.id}
               className="p-6 hover-elevate"

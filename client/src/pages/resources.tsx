@@ -1,64 +1,53 @@
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { ResourceCard } from "@/components/resource-card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, BookOpen } from "lucide-react";
 import type { Resource } from "@shared/schema";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Resources() {
   const [activeTab, setActiveTab] = useState("all");
+  const { toast } = useToast();
 
-  // TODO: remove mock functionality - replace with real data fetching
-  const mockResources: Resource[] = [
-    {
-      id: "1",
-      userId: "user1",
-      title: "LeetCode Top Interview Questions",
-      url: "https://leetcode.com/explore/interview/card/top-interview-questions-easy/",
-      category: "algorithms",
-      notes: "Focus on arrays and strings first",
-      isReviewed: false,
-      linkedApplicationId: null,
-      createdAt: new Date(),
+  const { data: resources = [], isLoading } = useQuery<Resource[]>({
+    queryKey: ["/api/resources", activeTab],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (activeTab !== "all") params.append("category", activeTab);
+      const response = await fetch(`/api/resources?${params}`);
+      if (!response.ok) throw new Error("Failed to fetch resources");
+      return response.json();
     },
-    {
-      id: "2",
-      userId: "user1",
-      title: "System Design Primer",
-      url: "https://github.com/donnemartin/system-design-primer",
-      category: "system_design",
-      notes: "Great resource for understanding scalability",
-      isReviewed: true,
-      linkedApplicationId: null,
-      createdAt: new Date(),
-    },
-    {
-      id: "3",
-      userId: "user1",
-      title: "STAR Method Guide",
-      url: "https://www.indeed.com/career-advice/interviewing/how-to-use-the-star-interview-response-technique",
-      category: "behavioral",
-      notes: "Practice behavioral questions using this framework",
-      isReviewed: false,
-      linkedApplicationId: null,
-      createdAt: new Date(),
-    },
-    {
-      id: "4",
-      userId: "user1",
-      title: "Google Interview Tips",
-      url: "https://careers.google.com/how-we-hire/",
-      category: "company_specific",
-      notes: null,
-      isReviewed: false,
-      linkedApplicationId: "1",
-      createdAt: new Date(),
-    },
-  ];
+  });
 
-  const filteredResources = activeTab === "all"
-    ? mockResources
-    : mockResources.filter((r) => r.category === activeTab);
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, isReviewed }: { id: string; isReviewed: boolean }) => {
+      return await apiRequest("PATCH", `/api/resources/${id}`, { isReviewed });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
+      toast({
+        title: "Success",
+        description: "Resource updated successfully!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update resource",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleToggleReviewed = (id: string, isReviewed: boolean) => {
+    updateMutation.mutate({ id, isReviewed });
+  };
+
+  const filteredResources = resources;
 
   return (
     <div className="space-y-6">
@@ -85,7 +74,11 @@ export default function Resources() {
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-6">
-          {filteredResources.length === 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center py-24">
+              <p className="text-muted-foreground">Loading...</p>
+            </div>
+          ) : filteredResources.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <BookOpen className="h-16 w-16 text-muted-foreground mb-4" />
               <h3 className="text-xl font-semibold mb-2">No resources found</h3>
@@ -103,9 +96,7 @@ export default function Resources() {
                 <ResourceCard
                   key={resource.id}
                   resource={resource}
-                  onToggleReviewed={(id, isReviewed) =>
-                    console.log("Toggle reviewed:", id, isReviewed)
-                  }
+                  onToggleReviewed={handleToggleReviewed}
                 />
               ))}
             </div>

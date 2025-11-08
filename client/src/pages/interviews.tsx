@@ -1,73 +1,26 @@
+import { useQuery } from "@tanstack/react-query";
 import { InterviewTimeline } from "@/components/interview-timeline";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Calendar } from "lucide-react";
+import { Calendar } from "lucide-react";
 import type { Interview } from "@shared/schema";
 
 export default function Interviews() {
-  // TODO: remove mock functionality - replace with real data fetching
-  const mockInterviews: (Interview & { companyName?: string; positionTitle?: string })[] = [
-    {
-      id: "1",
-      applicationId: "app1",
-      interviewType: "phone_screen",
-      interviewDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-      durationMinutes: 30,
-      interviewerNames: "Sarah Johnson",
-      platform: "Google Meet",
-      status: "scheduled",
-      prepNotes: null,
-      interviewNotes: null,
-      questionsAsked: null,
-      rating: null,
-      followUpActions: null,
-      createdAt: new Date(),
-      companyName: "TechCorp",
-      positionTitle: "Senior Frontend Engineer",
+  const { data: allInterviews = [], isLoading } = useQuery<
+    (Interview & { companyName?: string; positionTitle?: string })[]
+  >({
+    queryKey: ["/api/interviews"],
+    queryFn: async () => {
+      const response = await fetch("/api/interviews");
+      if (!response.ok) throw new Error("Failed to fetch interviews");
+      return response.json();
     },
-    {
-      id: "2",
-      applicationId: "app2",
-      interviewType: "technical",
-      interviewDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-      durationMinutes: 60,
-      interviewerNames: "Mike Chen",
-      platform: "Zoom",
-      status: "scheduled",
-      prepNotes: null,
-      interviewNotes: null,
-      questionsAsked: null,
-      rating: null,
-      followUpActions: null,
-      createdAt: new Date(),
-      companyName: "DataFlow Inc",
-      positionTitle: "Full Stack Developer",
-    },
-    {
-      id: "3",
-      applicationId: "app3",
-      interviewType: "behavioral",
-      interviewDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      durationMinutes: 45,
-      interviewerNames: "Alex Rivera",
-      platform: "On-site",
-      status: "completed",
-      prepNotes: null,
-      interviewNotes: "Went well, asked about team dynamics",
-      questionsAsked: null,
-      rating: 4,
-      followUpActions: null,
-      createdAt: new Date(),
-      companyName: "CloudScale",
-      positionTitle: "DevOps Engineer",
-    },
-  ];
+  });
 
-  const upcomingInterviews = mockInterviews.filter(
+  const upcomingInterviews = allInterviews.filter(
     (i) => i.status === "scheduled" && new Date(i.interviewDate) > new Date()
   );
 
-  const completedInterviews = mockInterviews.filter((i) => i.status === "completed");
+  const completedInterviews = allInterviews.filter((i) => i.status === "completed");
 
   return (
     <div className="space-y-6">
@@ -91,7 +44,11 @@ export default function Interviews() {
         </TabsList>
 
         <TabsContent value="upcoming" className="mt-6">
-          {upcomingInterviews.length === 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center py-24">
+              <p className="text-muted-foreground">Loading...</p>
+            </div>
+          ) : upcomingInterviews.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <Calendar className="h-16 w-16 text-muted-foreground mb-4" />
               <h3 className="text-xl font-semibold mb-2">No upcoming interviews</h3>
@@ -105,7 +62,11 @@ export default function Interviews() {
         </TabsContent>
 
         <TabsContent value="completed" className="mt-6">
-          {completedInterviews.length === 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center py-24">
+              <p className="text-muted-foreground">Loading...</p>
+            </div>
+          ) : completedInterviews.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <Calendar className="h-16 w-16 text-muted-foreground mb-4" />
               <h3 className="text-xl font-semibold mb-2">No completed interviews</h3>
