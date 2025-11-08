@@ -1,0 +1,205 @@
+-- Companies/Applications
+applications:
+- id (uuid, primary key)
+- user_id (uuid, foreign key) -- for auth
+- company_name (text)*
+- position_title (text)*
+- job_url (text)
+- logo_url (text)
+- status (enum: applied, phone_screen, technical, onsite, final, offer, rejected, withdrawn)
+- salary_min (integer)
+- salary_max (integer)
+- location (text)
+- is_remote (boolean)
+- application_date (date)
+- notes (text)
+- created_at (timestamp)
+- updated_at (timestamp)
+
+-- Interviews
+interviews:
+- id (uuid, primary key)
+- application_id (uuid, foreign key)*
+- interview_type (enum: phone_screen, technical, system_design, behavioral, final, other)
+- interview_date (timestamp)*
+- duration_minutes (integer)
+- interviewer_names (text)
+- platform (text) -- Zoom, Google Meet, On-site, etc.
+- status (enum: scheduled, completed, cancelled)
+- prep_notes (text)
+- interview_notes (text)
+- questions_asked (text)
+- rating (integer 1-5)
+- follow_up_actions (text)
+- created_at (timestamp)
+
+-- Resources
+resources:
+- id (uuid, primary key)
+- user_id (uuid, foreign key)
+- title (text)*
+- url (text)
+- category (enum: algorithms, system_design, behavioral, company_specific, resume, other)
+- notes (text)
+- is_reviewed (boolean, default false)
+- linked_application_id (uuid, foreign key, nullable)
+- created_at (timestamp)
+
+-- Questions Bank
+questions:
+- id (uuid, primary key)
+- user_id (uuid, foreign key)
+- question_text (text)*
+- answer_text (text)
+- question_type (enum: behavioral, technical, system_design, company_culture)
+- is_favorite (boolean, default false)
+- tags (text[])
+- created_at (timestamp)
+```
+
+### **Key User Flows:**
+
+**1. Add Application Flow:**
+```
+Dashboard → "Add Application" button → Modal opens
+→ Fill company info → Save → Card appears in list
+→ Toast: "Application added successfully!"
+```
+
+**2. Schedule Interview Flow:**
+```
+Application card → "Schedule Interview" button → Modal opens
+→ Fill interview details → Save → Interview appears in timeline
+→ Toast: "Interview scheduled for [date]"
+```
+
+**3. Update Status Flow:**
+```
+Application card → Status dropdown → Select new status
+→ Auto-save → Card color updates → Stats refresh
+→ Toast: "Status updated to [new status]"
+```
+
+**4. Post-Interview Flow:**
+```
+Dashboard → Upcoming interview → "Complete" button → Modal
+→ Add notes, rating, questions → Save
+→ Status auto-updates to "Completed" → Stats refresh
+```
+
+**5. Resource Discovery Flow:**
+```
+Resources tab → "Add Resource" button → Modal
+→ Add title, URL, category → Optionally link to company
+→ Save → Resource card appears → Toast: "Resource saved"
+```
+
+### **UI/UX Details:**
+
+**Color Coding by Status:**
+- Applied: Blue
+- Phone Screen: Purple
+- Technical: Orange
+- Onsite/Final: Yellow
+- Offer: Green
+- Rejected: Red
+- Withdrawn: Gray
+
+**Dashboard Layout:**
+```
+┌─────────────────────────────────────┐
+│  Stats Cards (4 across)             │
+├─────────────────────────────────────┤
+│  Upcoming Interviews  │  Recent     │
+│  (Timeline)           │  Activity   │
+├─────────────────────────────────────┤
+│  Quick Actions & Filters            │
+└─────────────────────────────────────┘
+```
+
+**Applications View:**
+- Grid of cards on desktop (3 columns)
+- List view on mobile
+- Filters sticky at top
+- Empty state with illustration
+
+**Navigation:**
+- Dashboard (home icon)
+- Applications (briefcase icon)
+- Interviews (calendar icon)
+- Resources (book icon)
+- Questions (lightbulb icon)
+
+### **Tech Stack Details:**
+
+**Frontend:**
+- React 18 with Hooks
+- TailwindCSS for styling
+- shadcn/ui components (Dialog, Select, Badge, Card)
+- Lucide React icons
+- date-fns or day.js for dates
+- React Hook Form for form handling
+- React Query (optional) for data fetching
+
+**Backend:**
+- Supabase:
+  - PostgreSQL database
+  - Row Level Security (RLS) enabled
+  - Supabase Auth (email/password)
+  - Real-time subscriptions (optional - for live updates)
+  - REST API auto-generated
+
+**Hosting:**
+- Netlify (with environment variables for Supabase keys)
+
+**State Management:**
+- React Context or Zustand for:
+  - Current user
+  - Filter preferences
+  - Theme (light/dark mode)
+
+### **Bolt/Replit Prompt:**
+```
+Build an Interview Prep Tracker web app with the following:
+
+FRONTEND (React + TailwindCSS):
+- Dashboard with stats cards showing total applications, upcoming interviews, and applications by status
+- Applications page with filterable cards (by status, search by company)
+- Each application card shows: company name, position, status badge, application date, salary range
+- Modal forms for adding/editing applications with fields: company name, position, status, salary range, application date, notes, location
+- Interview scheduling modal with: interview type, date/time, interviewer, platform, prep notes
+- Resources section to save prep materials with categories
+- Status dropdown with colors: Applied (blue), Phone Screen (purple), Technical (orange), Final (yellow), Offer (green), Rejected (red)
+- Responsive design with mobile-first approach
+- Use shadcn/ui components for modals, cards, badges, dropdowns
+- Lucide React icons throughout
+
+DATABASE (Supabase):
+Tables needed:
+1. applications: id, company_name, position_title, status, salary_min, salary_max, application_date, notes, location, created_at
+2. interviews: id, application_id (FK), interview_type, interview_date, interviewer_names, platform, status, prep_notes, rating, created_at
+3. resources: id, title, url, category, notes, is_reviewed, created_at
+
+FEATURES:
+- Add/edit/delete applications
+- Filter applications by status
+- Schedule interviews for each application
+- Mark interview completion with notes and rating
+- Save prep resources with categories
+- Dashboard shows upcoming interviews timeline
+- Auto-calculate success rate percentage
+- Toast notifications for all actions
+- Empty states with friendly messages
+
+API CALLS:
+- GET /applications (with filters)
+- POST /applications
+- PUT /applications/:id
+- DELETE /applications/:id
+- GET /interviews?application_id=x
+- POST /interviews
+- PUT /interviews/:id
+- GET /resources
+- POST /resources
+
+Make it look modern and professional - this is for a portfolio to showcase to recruiters!
