@@ -80,6 +80,13 @@ export default {
           away: "rgb(245 158 11)",
           busy: "rgb(239 68 68)",
           offline: "rgb(156 163 175)",
+          applied: "rgb(59 130 246)",
+          phoneScreen: "rgb(168 85 247)",
+          technical: "rgb(249 115 22)",
+          onsite: "rgb(234 179 8)",
+          offer: "rgb(34 197 94)",
+          rejected: "rgb(239 68 68)",
+          withdrawn: "rgb(156 163 175)",
         },
       },
       fontFamily: {
