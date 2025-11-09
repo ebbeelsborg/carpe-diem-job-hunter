@@ -40,21 +40,28 @@ export default function Signup() {
 
     setLoading(true);
 
-    const { error } = await signUp(email, password);
+    try {
+      const { error } = await signUp(email, password);
 
-    if (error) {
+      if (error) {
+        console.error('Signup error:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Signup failed',
+          description: error.message || 'An error occurred during signup',
+        });
+        setLoading(false);
+      } else {
+        setLocation('/');
+      }
+    } catch (err) {
+      console.error('Unexpected signup error:', err);
       toast({
         variant: 'destructive',
         title: 'Signup failed',
-        description: error.message,
+        description: 'An unexpected error occurred',
       });
       setLoading(false);
-    } else {
-      toast({
-        title: 'Account created!',
-        description: 'Please check your email to verify your account.',
-      });
-      setTimeout(() => setLocation('/login'), 2000);
     }
   };
 
