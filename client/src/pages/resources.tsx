@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { ResourceCard } from "@/components/resource-card";
+import { AddResourceModal } from "@/components/add-resource-modal";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, BookOpen } from "lucide-react";
-import type { Resource } from "@shared/schema";
+import type { Resource, InsertResource } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Resources() {
   const [activeTab, setActiveTab] = useState("all");
+  const [showAddModal, setShowAddModal] = useState(false);
   const { toast } = useToast();
 
   const { data: resources = [], isLoading } = useQuery<Resource[]>({
@@ -20,6 +22,26 @@ export default function Resources() {
       const response = await fetch(`/api/resources?${params}`);
       if (!response.ok) throw new Error("Failed to fetch resources");
       return response.json();
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: InsertResource) => {
+      return await apiRequest("POST", "/api/resources", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
+      toast({
+        title: "Success",
+        description: "Resource added successfully!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add resource",
+        variant: "destructive",
+      });
     },
   });
 
@@ -43,6 +65,10 @@ export default function Resources() {
     },
   });
 
+  const handleAddResource = async (data: InsertResource) => {
+    await createMutation.mutateAsync(data);
+  };
+
   const handleToggleReviewed = (id: string, isReviewed: boolean) => {
     updateMutation.mutate({ id, isReviewed });
   };
@@ -58,7 +84,7 @@ export default function Resources() {
             Save and organize your interview preparation materials
           </p>
         </div>
-        <Button onClick={() => console.log("Add resource")} data-testid="button-add-resource">
+        <Button onClick={() => setShowAddModal(true)} data-testid="button-add-resource">
           <Plus className="h-4 w-4 mr-2" />
           Add Resource
         </Button>
@@ -85,7 +111,7 @@ export default function Resources() {
               <p className="text-muted-foreground mb-6">
                 Add your first resource to get started
               </p>
-              <Button onClick={() => console.log("Add resource")} data-testid="button-add-first">
+              <Button onClick={() => setShowAddModal(true)} data-testid="button-add-first">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Resource
               </Button>
@@ -103,6 +129,12 @@ export default function Resources() {
           )}
         </TabsContent>
       </Tabs>
+
+      <AddResourceModal
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+        onSubmit={handleAddResource}
+      />
     </div>
   );
 }

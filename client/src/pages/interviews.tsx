@@ -1,10 +1,18 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { InterviewTimeline } from "@/components/interview-timeline";
+import { AddInterviewModal } from "@/components/add-interview-modal";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar } from "lucide-react";
-import type { Interview } from "@shared/schema";
+import { Calendar, Plus } from "lucide-react";
+import type { Interview, Application, InsertInterview } from "@shared/schema";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Interviews() {
+  const [showAddModal, setShowAddModal] = useState(false);
+  const { toast } = useToast();
+
   const { data: allInterviews = [], isLoading } = useQuery<
     (Interview & { companyName?: string; positionTitle?: string })[]
   >({
@@ -15,6 +23,39 @@ export default function Interviews() {
       return response.json();
     },
   });
+
+  const { data: applications = [] } = useQuery<Application[]>({
+    queryKey: ["/api/applications"],
+    queryFn: async () => {
+      const response = await fetch("/api/applications");
+      if (!response.ok) throw new Error("Failed to fetch applications");
+      return response.json();
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: InsertInterview) => {
+      return await apiRequest("POST", "/api/interviews", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/interviews"] });
+      toast({
+        title: "Success",
+        description: "Interview scheduled successfully!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to schedule interview",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddInterview = async (data: InsertInterview) => {
+    await createMutation.mutateAsync(data);
+  };
 
   const upcomingInterviews = allInterviews.filter(
     (i) => i.status === "scheduled" && new Date(i.interviewDate) > new Date()
@@ -31,6 +72,10 @@ export default function Interviews() {
             Schedule and track your interview appointments
           </p>
         </div>
+        <Button onClick={() => setShowAddModal(true)} data-testid="button-add-interview">
+          <Plus className="h-4 w-4 mr-2" />
+          Schedule Interview
+        </Button>
       </div>
 
       <Tabs defaultValue="upcoming">
@@ -55,6 +100,10 @@ export default function Interviews() {
               <p className="text-muted-foreground mb-6">
                 Schedule an interview from your applications
               </p>
+              <Button onClick={() => setShowAddModal(true)} data-testid="button-add-first">
+                <Plus className="h-4 w-4 mr-2" />
+                Schedule Interview
+              </Button>
             </div>
           ) : (
             <InterviewTimeline interviews={upcomingInterviews} />
@@ -79,6 +128,13 @@ export default function Interviews() {
           )}
         </TabsContent>
       </Tabs>
+
+      <AddInterviewModal
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+        onSubmit={handleAddInterview}
+        applications={applications}
+      />
     </div>
   );
 }

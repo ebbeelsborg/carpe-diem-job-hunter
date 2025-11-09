@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { AddQuestionModal } from "@/components/add-question-modal";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,11 +13,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Lightbulb, Star, Search } from "lucide-react";
-import type { Question } from "@shared/schema";
+import type { Question, InsertQuestion } from "@shared/schema";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Questions() {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const { toast } = useToast();
 
   const { data: questions = [], isLoading } = useQuery<Question[]>({
     queryKey: ["/api/questions", typeFilter, searchTerm],
@@ -30,6 +35,30 @@ export default function Questions() {
     },
   });
 
+  const createMutation = useMutation({
+    mutationFn: async (data: InsertQuestion) => {
+      return await apiRequest("POST", "/api/questions", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
+      toast({
+        title: "Success",
+        description: "Question added successfully!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add question",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddQuestion = async (data: InsertQuestion) => {
+    await createMutation.mutateAsync(data);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -39,7 +68,7 @@ export default function Questions() {
             Store and review common interview questions and your answers
           </p>
         </div>
-        <Button onClick={() => console.log("Add question")} data-testid="button-add-question">
+        <Button onClick={() => setShowAddModal(true)} data-testid="button-add-question">
           <Plus className="h-4 w-4 mr-2" />
           Add Question
         </Button>
@@ -83,7 +112,7 @@ export default function Questions() {
               ? "Try adjusting your filters"
               : "Add your first question to get started"}
           </p>
-          <Button onClick={() => console.log("Add question")} data-testid="button-add-first">
+          <Button onClick={() => setShowAddModal(true)} data-testid="button-add-first">
             <Plus className="h-4 w-4 mr-2" />
             Add Your First Question
           </Button>
@@ -128,6 +157,12 @@ export default function Questions() {
           ))}
         </div>
       )}
+
+      <AddQuestionModal
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+        onSubmit={handleAddQuestion}
+      />
     </div>
   );
 }
