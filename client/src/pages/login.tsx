@@ -28,10 +28,16 @@ export default function Login() {
     const { error } = await signIn(email, password);
 
     if (error) {
+      let description = error.message;
+      
+      if (error.message.includes('Email not confirmed')) {
+        description = 'Please check your email and click the confirmation link before signing in.';
+      }
+      
       toast({
         variant: 'destructive',
         title: 'Login failed',
-        description: error.message,
+        description,
       });
       setLoading(false);
     } else {

@@ -41,7 +41,7 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      const { error } = await signUp(email, password);
+      const { error, requiresEmailConfirmation } = await signUp(email, password);
 
       if (error) {
         console.error('Signup error:', error);
@@ -51,6 +51,12 @@ export default function Signup() {
           description: error.message || 'An error occurred during signup',
         });
         setLoading(false);
+      } else if (requiresEmailConfirmation) {
+        toast({
+          title: 'Check your email',
+          description: 'We sent you a confirmation link. Please check your email and click the link to verify your account.',
+        });
+        setTimeout(() => setLocation('/login'), 3000);
       } else {
         setLocation('/');
       }

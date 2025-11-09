@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string) => Promise<{ error: Error | null; requiresEmailConfirmation?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${window.location.origin}/`,
         },
       });
       
@@ -50,11 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: error as Error | null };
       }
       
-      if (data.user && !data.session) {
-        return { error: new Error('Please check your email to confirm your account') as Error };
-      }
-      
-      return { error: null };
+      return { error: null, requiresEmailConfirmation: !!(data.user && !data.session) };
     } catch (err) {
       return { error: err as Error };
     }
