@@ -27,10 +27,10 @@ function companyNameToDomain(companyName: string): string {
 }
 
 /**
- * Generates a company logo URL using Logo.dev API
+ * Generates a company logo URL using Clearbit's free Logo API
  * @param jobUrl - Optional job posting URL
  * @param companyName - Company name
- * @returns Logo URL from Logo.dev
+ * @returns Logo URL from Clearbit
  */
 export function getCompanyLogoUrl(jobUrl: string | undefined | null, companyName: string): string {
   let domain: string;
@@ -46,5 +46,5 @@ export function getCompanyLogoUrl(jobUrl: string | undefined | null, companyName
     domain = companyNameToDomain(companyName);
   }
 
-  return `https://img.logo.dev/${domain}?token=pk_X-NbcD_eTGWwT5UbbEf_vQ&size=128`;
+  return `https://logo.clearbit.com/${domain}?size=128`;
 }
