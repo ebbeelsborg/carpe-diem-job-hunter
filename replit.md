@@ -12,6 +12,12 @@ The Interview Prep Tracker is a full-stack web application designed to help job 
 
 Preferred communication style: Simple, everyday language.
 
+**UI/UX Preferences**:
+- Application cards use three-dot dropdown menus for actions (Edit, Schedule Interview, Delete) instead of inline buttons - saves space and provides cleaner interface
+- Entire application card is clickable to view details
+- Dashboard stat cards have subtle hover highlight effects for better interactivity
+- Silent operations: No success toasts after CRUD operations (only error messages shown)
+
 ## System Architecture
 
 ### Frontend Architecture
