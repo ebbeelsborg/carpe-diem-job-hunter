@@ -6,7 +6,7 @@ The Interview Prep Tracker is a full-stack web application designed to help job 
 
 **Core Purpose**: Streamline the job search process by providing tools to track applications through various stages, prepare for interviews, and organize study materials in one consolidated workspace.
 
-**Tech Stack**: React with TypeScript frontend, Express.js backend, PostgreSQL database via Neon, Drizzle ORM, TanStack Query for state management, and shadcn/ui component library with Tailwind CSS for styling.
+**Tech Stack**: React with TypeScript frontend, Express.js backend, PostgreSQL database via Supabase, Supabase Auth for authentication, Drizzle ORM, TanStack Query for state management, and shadcn/ui component library with Tailwind CSS for styling.
 
 ## User Preferences
 
@@ -30,18 +30,28 @@ Preferred communication style: Simple, everyday language.
 
 **Design System**: Tailwind CSS with custom configuration extending base colors and spacing. CSS variables drive theming (light mode implemented, dark mode structure present). Typography uses Inter/DM Sans for clean, modern aesthetic. Component styling emphasizes subtle shadows, borders, and hover states for depth without visual clutter.
 
-**Routing Strategy**: Five main routes mapped to dedicated pages:
+**Routing Strategy**: Seven routes total - two public auth routes and five protected application routes:
+
+Public Routes:
+- `/login` - Email/password login page
+- `/signup` - User registration with email confirmation
+
+Protected Routes (require authentication):
 - `/` - Dashboard with stats overview and recent activity
 - `/applications` - Full application management with filtering
 - `/interviews` - Interview scheduling and timeline view
 - `/resources` - Study materials organized by category
 - `/questions` - Interview question bank with search
 
+**Route Protection**: ProtectedRoute component wraps authenticated pages, redirecting unauthenticated users to `/login`. AppLayout conditionally hides sidebar on auth pages.
+
 ### Backend Architecture
 
 **Server Framework**: Express.js with TypeScript running in ESM mode. Middleware stack includes JSON body parsing with raw body preservation for webhook compatibility, request logging with duration tracking, and automatic error handling.
 
-**API Design**: RESTful endpoints organized by resource type. Mock user authentication currently using hardcoded user ID (`MOCK_USER_ID`) - authentication infrastructure prepared but not yet implemented. All API routes prefixed with `/api/`.
+**API Design**: RESTful endpoints organized by resource type. All routes are protected with JWT authentication middleware that verifies Supabase Auth tokens and extracts the authenticated user ID. All API routes prefixed with `/api/`.
+
+**Authentication**: JWT-based authentication using Supabase Auth. Middleware at `server/middleware/auth.ts` verifies tokens using the Supabase service role key and injects `userId` into request objects. All endpoints return 401 for unauthenticated requests.
 
 **Storage Layer**: Abstracted through `IStorage` interface in `server/storage.ts`, providing clean separation between business logic and data access. Enables easy testing and potential future storage backend changes.
 
@@ -51,7 +61,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Data Storage & Schema
 
-**Database**: PostgreSQL via Neon serverless with WebSocket connection pooling. Drizzle ORM provides type-safe queries and schema management.
+**Database**: PostgreSQL via Supabase with connection pooling. Drizzle ORM provides type-safe queries and schema management. Supabase Auth manages user authentication with email/password login and email confirmation.
 
 **Core Entities**:
 
@@ -93,10 +103,11 @@ Preferred communication style: Simple, everyday language.
 - shadcn/ui with Radix UI primitives - Provides accessible, unstyled components
 - Rationale: Customizable without fighting framework opinions, built-in accessibility, TypeScript support
 
-**Database Provider**:
-- Neon Serverless PostgreSQL - Managed PostgreSQL with WebSocket support
-- Connection pooling via `@neondatabase/serverless` and `ws` package
-- Rationale: Serverless scaling, WebSocket support for edge deployments, PostgreSQL compatibility
+**Database & Authentication Provider**:
+- Supabase PostgreSQL - Managed PostgreSQL with built-in authentication
+- Supabase Auth - JWT-based authentication with email/password and email confirmation
+- Connection pooling via Supabase session pooler (port 5432)
+- Rationale: Integrated auth + database solution, automatic user management, secure JWT tokens, email confirmation flow
 
 **Form Management**:
 - React Hook Form with Zod resolver - Type-safe form validation
@@ -133,3 +144,38 @@ Preferred communication style: Simple, everyday language.
 - Graceful fallback: displays Building2 icon if logo fails to load
 - No authentication required
 - Rationale: Enhances visual recognition of companies, professional appearance, zero configuration
+
+## Authentication Flow
+
+**Implementation**: Supabase Auth with JWT tokens, email/password authentication with email confirmation enabled.
+
+**Frontend Components**:
+- `AuthContext` (`client/src/contexts/auth-context.tsx`) - Provides user state and auth functions (signUp, signIn, signOut)
+- `ProtectedRoute` (`client/src/components/protected-route.tsx`) - Wrapper component that redirects unauthenticated users to `/login`
+- Login/Signup pages with form validation and error handling
+- Supabase client configured with public anon key for frontend operations
+
+**Backend Security**:
+- Authentication middleware (`server/middleware/auth.ts`) verifies JWT tokens using Supabase service role key
+- Service role key enables secure server-side token verification without trusting client credentials
+- Middleware extracts `userId` from verified tokens and injects into request objects
+- All protected API routes use `authenticateUser` middleware to enforce authentication
+
+**User Flow**:
+1. User visits app → redirected to `/login` if not authenticated
+2. User clicks "Sign up" → fills email/password form
+3. Supabase creates user account and sends confirmation email
+4. User receives toast: "Check your email - We sent you a confirmation link"
+5. User clicks email confirmation link → Supabase verifies email
+6. User returns to `/login` and signs in with credentials
+7. Supabase returns JWT session token → stored in AuthContext
+8. Protected routes now accessible → sidebar displayed with user email and sign out button
+9. All API requests include JWT token in Authorization header
+10. Backend middleware verifies token and allows access to user's data
+
+**Security Notes**:
+- Frontend uses `VITE_SUPABASE_ANON_KEY` (public, safe to expose)
+- Backend uses `SUPABASE_SERVICE_ROLE_KEY` (private, never exposed to frontend)
+- Email confirmation required before login (configurable in Supabase dashboard)
+- Multi-tenant data isolation: all storage queries filter by authenticated `userId`
+- Session persistence disabled on backend to prevent memory leaks
