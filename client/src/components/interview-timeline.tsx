@@ -12,13 +12,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Calendar, Clock, Video, Trash2 } from "lucide-react";
+import { Calendar, Clock, Video, Trash2, Pencil } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import type { Interview } from "@shared/schema";
 
 interface InterviewTimelineProps {
   interviews: (Interview & { companyName?: string; positionTitle?: string })[];
   onDelete?: (id: string) => void;
+  onEdit?: (id: string) => void;
 }
 
 const interviewTypeLabels: Record<string, string> = {
@@ -30,7 +31,7 @@ const interviewTypeLabels: Record<string, string> = {
   other: "Interview",
 };
 
-export function InterviewTimeline({ interviews, onDelete }: InterviewTimelineProps) {
+export function InterviewTimeline({ interviews, onDelete, onEdit }: InterviewTimelineProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [interviewToDelete, setInterviewToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -99,6 +100,16 @@ export function InterviewTimeline({ interviews, onDelete }: InterviewTimelinePro
                     <Badge variant="outline">
                       {interviewTypeLabels[interview.interviewType]}
                     </Badge>
+                    {onEdit && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onEdit(interview.id)}
+                        data-testid={`button-edit-${interview.id}`}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
                     {onDelete && (
                       <Button
                         variant="ghost"

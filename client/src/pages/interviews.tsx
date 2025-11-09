@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { InterviewTimeline } from "@/components/interview-timeline";
 import { AddInterviewModal } from "@/components/add-interview-modal";
+import { EditInterviewModal } from "@/components/edit-interview-modal";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Plus } from "lucide-react";
@@ -11,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function Interviews() {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedInterview, setSelectedInterview] = useState<Interview | null>(null);
   const { toast } = useToast();
 
   const { data: allInterviews = [], isLoading } = useQuery<
@@ -50,6 +53,24 @@ export default function Interviews() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertInterview> }) => {
+      return await apiRequest("PATCH", `/api/interviews/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/interviews"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/interviews/upcoming"] });
+      setShowEditModal(false);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update interview",
+        variant: "destructive",
+      });
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       return await apiRequest("DELETE", `/api/interviews/${id}`);
@@ -69,6 +90,18 @@ export default function Interviews() {
 
   const handleAddInterview = async (data: InsertInterview) => {
     await createMutation.mutateAsync(data);
+  };
+
+  const handleEditInterview = (id: string) => {
+    const interview = allInterviews.find(i => i.id === id);
+    if (interview) {
+      setSelectedInterview(interview as Interview);
+      setShowEditModal(true);
+    }
+  };
+
+  const handleUpdateInterview = async (id: string, data: Partial<InsertInterview>) => {
+    await updateMutation.mutateAsync({ id, data });
   };
 
   const handleDeleteInterview = async (id: string) => {
@@ -124,7 +157,11 @@ export default function Interviews() {
               </Button>
             </div>
           ) : (
-            <InterviewTimeline interviews={upcomingInterviews} onDelete={handleDeleteInterview} />
+            <InterviewTimeline 
+              interviews={upcomingInterviews} 
+              onEdit={handleEditInterview}
+              onDelete={handleDeleteInterview} 
+            />
           )}
         </TabsContent>
 
@@ -142,7 +179,11 @@ export default function Interviews() {
               </p>
             </div>
           ) : (
-            <InterviewTimeline interviews={completedInterviews} onDelete={handleDeleteInterview} />
+            <InterviewTimeline 
+              interviews={completedInterviews} 
+              onEdit={handleEditInterview}
+              onDelete={handleDeleteInterview} 
+            />
           )}
         </TabsContent>
       </Tabs>
@@ -152,6 +193,14 @@ export default function Interviews() {
         onOpenChange={setShowAddModal}
         onSubmit={handleAddInterview}
         applications={applications}
+      />
+
+      <EditInterviewModal
+        open={showEditModal}
+        onOpenChange={setShowEditModal}
+        onSubmit={handleUpdateInterview}
+        applications={applications}
+        interview={selectedInterview}
       />
     </div>
   );
