@@ -69,7 +69,6 @@ export function ApplicationDetailsModal({
       setValue("status", application.status);
       setValue("applicationDate", new Date(application.applicationDate).toISOString().split("T")[0]);
       setValue("jobUrl", application.jobUrl || "");
-      setValue("logoUrl", application.logoUrl || "");
       setValue("location", application.location || "");
       setValue("isRemote", application.isRemote);
       setValue("notes", application.notes || "");
@@ -90,7 +89,6 @@ export function ApplicationDetailsModal({
         status: data.status,
         applicationDate: new Date(data.applicationDate),
         jobUrl: data.jobUrl || undefined,
-        logoUrl: data.logoUrl || undefined,
         location: data.location || undefined,
         isRemote: data.isRemote || false,
         notes: data.notes || undefined,
@@ -233,27 +231,15 @@ export function ApplicationDetailsModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="jobUrl">Job Posting URL</Label>
-              <Input
-                id="jobUrl"
-                type="url"
-                {...register("jobUrl")}
-                placeholder="https://..."
-                data-testid="input-job-url"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="logoUrl">Company Logo URL</Label>
-              <Input
-                id="logoUrl"
-                type="url"
-                {...register("logoUrl")}
-                placeholder="https://logo.clearbit.com/google.com"
-                data-testid="input-logo-url"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="jobUrl">Job Posting URL</Label>
+            <Input
+              id="jobUrl"
+              type="url"
+              {...register("jobUrl")}
+              placeholder="https://..."
+              data-testid="input-job-url"
+            />
           </div>
 
           <div className="space-y-2">
