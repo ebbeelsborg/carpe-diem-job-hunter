@@ -57,10 +57,6 @@ export default function Dashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/applications/stats"] });
-      toast({
-        title: "Success",
-        description: "Application added successfully!",
-      });
     },
     onError: () => {
       toast({

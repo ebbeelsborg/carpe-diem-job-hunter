@@ -41,10 +41,6 @@ export default function Questions() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
-      toast({
-        title: "Success",
-        description: "Question added successfully!",
-      });
     },
     onError: () => {
       toast({

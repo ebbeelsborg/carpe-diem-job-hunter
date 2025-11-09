@@ -31,10 +31,6 @@ export default function Resources() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
-      toast({
-        title: "Success",
-        description: "Resource added successfully!",
-      });
     },
     onError: () => {
       toast({
@@ -51,10 +47,6 @@ export default function Resources() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
-      toast({
-        title: "Success",
-        description: "Resource updated successfully!",
-      });
     },
     onError: () => {
       toast({
