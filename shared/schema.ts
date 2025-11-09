@@ -119,11 +119,19 @@ export const insertApplicationSchema = createInsertSchema(applications).omit({
   createdAt: true,
   updatedAt: true,
   userId: true,
+}).extend({
+  applicationDate: z.union([z.string(), z.date()]).transform((val) => 
+    typeof val === 'string' ? new Date(val) : val
+  ),
 });
 
 export const insertInterviewSchema = createInsertSchema(interviews).omit({
   id: true,
   createdAt: true,
+}).extend({
+  interviewDate: z.union([z.string(), z.date()]).transform((val) => 
+    typeof val === 'string' ? new Date(val) : val
+  ),
 });
 
 export const insertResourceSchema = createInsertSchema(resources).omit({

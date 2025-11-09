@@ -24,8 +24,14 @@ import { insertApplicationSchema } from "@shared/schema";
 import type { InsertApplication } from "@shared/schema";
 import { z } from "zod";
 
-const formSchema = insertApplicationSchema.extend({
+const formSchema = insertApplicationSchema.omit({
+  applicationDate: true,
+  salaryMin: true,
+  salaryMax: true,
+}).extend({
   applicationDate: z.string(),
+  salaryMin: z.coerce.number().optional().or(z.literal('')),
+  salaryMax: z.coerce.number().optional().or(z.literal('')),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -33,7 +39,7 @@ type FormData = z.infer<typeof formSchema>;
 interface AddApplicationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: InsertApplication) => void;
+  onSubmit: (data: InsertApplication) => Promise<void>;
 }
 
 export function AddApplicationModal({
@@ -57,16 +63,27 @@ export function AddApplicationModal({
     },
   });
 
-  const handleFormSubmit = (data: FormData) => {
-    const submitData: InsertApplication = {
-      ...data,
-      applicationDate: new Date(data.applicationDate),
-      salaryMin: data.salaryMin ? Number(data.salaryMin) : undefined,
-      salaryMax: data.salaryMax ? Number(data.salaryMax) : undefined,
-    };
-    onSubmit(submitData);
-    reset();
-    onOpenChange(false);
+  const handleFormSubmit = async (data: FormData) => {
+    try {
+      const submitData: InsertApplication = {
+        companyName: data.companyName,
+        positionTitle: data.positionTitle,
+        status: data.status,
+        applicationDate: new Date(data.applicationDate),
+        jobUrl: data.jobUrl || undefined,
+        logoUrl: data.logoUrl || undefined,
+        location: data.location || undefined,
+        isRemote: data.isRemote || false,
+        notes: data.notes || undefined,
+        salaryMin: data.salaryMin && typeof data.salaryMin === 'number' ? data.salaryMin : undefined,
+        salaryMax: data.salaryMax && typeof data.salaryMax === 'number' ? data.salaryMax : undefined,
+      };
+      await onSubmit(submitData);
+      reset();
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Form submission error:", error);
+    }
   };
 
   return (

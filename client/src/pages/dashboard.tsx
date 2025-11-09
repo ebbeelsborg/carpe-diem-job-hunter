@@ -61,8 +61,18 @@ export default function Dashboard() {
     },
   });
 
-  const handleAddApplication = (data: InsertApplication) => {
-    createMutation.mutate(data);
+  const handleAddApplication = async (data: InsertApplication) => {
+    return new Promise((resolve, reject) => {
+      createMutation.mutate(data, {
+        onSuccess: () => {
+          setShowAddModal(false);
+          resolve(undefined);
+        },
+        onError: (error) => {
+          reject(error);
+        },
+      });
+    });
   };
 
   const inProgressCount =
