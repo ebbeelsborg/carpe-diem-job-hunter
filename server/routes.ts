@@ -3,17 +3,15 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertApplicationSchema, insertInterviewSchema, insertResourceSchema, insertQuestionSchema } from "@shared/schema";
 import { z } from "zod";
-
-// Temporary mock user ID until auth is implemented
-const MOCK_USER_ID = "mock-user-123";
+import { authenticateUser, type AuthRequest } from "./middleware/auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // Applications routes
-  app.get("/api/applications", async (req, res) => {
+  app.get("/api/applications", authenticateUser, async (req: AuthRequest, res) => {
     try {
       const { status, search } = req.query;
-      const applications = await storage.getApplications(MOCK_USER_ID, {
+      const applications = await storage.getApplications(req.userId!, {
         status: status as string,
         search: search as string,
       });
@@ -24,9 +22,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/applications/stats", async (req, res) => {
+  app.get("/api/applications/stats", authenticateUser, async (req: AuthRequest, res) => {
     try {
-      const stats = await storage.getApplicationStats(MOCK_USER_ID);
+      const stats = await storage.getApplicationStats(req.userId!);
       res.json(stats);
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -34,9 +32,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/applications/:id", async (req, res) => {
+  app.get("/api/applications/:id", authenticateUser, async (req: AuthRequest, res) => {
     try {
-      const application = await storage.getApplication(MOCK_USER_ID, req.params.id);
+      const application = await storage.getApplication(req.userId!, req.params.id);
       if (!application) {
         return res.status(404).json({ error: "Application not found" });
       }
@@ -47,10 +45,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/applications", async (req, res) => {
+  app.post("/api/applications", authenticateUser, async (req: AuthRequest, res) => {
     try {
       const validatedData = insertApplicationSchema.parse(req.body);
-      const application = await storage.createApplication(MOCK_USER_ID, validatedData);
+      const application = await storage.createApplication(req.userId!, validatedData);
       res.status(201).json(application);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -61,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/applications/:id", async (req, res) => {
+  app.patch("/api/applications/:id", authenticateUser, async (req: AuthRequest, res) => {
     try {
       const allowedFields: (keyof typeof insertApplicationSchema._type)[] = [
         "companyName", "positionTitle", "jobUrl", "logoUrl", "status", "salaryMin",
@@ -79,7 +77,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updates.applicationDate = new Date(updates.applicationDate);
       }
       
-      const application = await storage.updateApplication(MOCK_USER_ID, req.params.id, updates);
+      const application = await storage.updateApplication(req.userId!, req.params.id, updates);
       if (!application) {
         return res.status(404).json({ error: "Application not found" });
       }
@@ -90,9 +88,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/applications/:id", async (req, res) => {
+  app.delete("/api/applications/:id", authenticateUser, async (req: AuthRequest, res) => {
     try {
-      const success = await storage.deleteApplication(MOCK_USER_ID, req.params.id);
+      const success = await storage.deleteApplication(req.userId!, req.params.id);
       if (!success) {
         return res.status(404).json({ error: "Application not found" });
       }
@@ -104,10 +102,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Interviews routes
-  app.get("/api/interviews", async (req, res) => {
+  app.get("/api/interviews", authenticateUser, async (req: AuthRequest, res) => {
     try {
       const { applicationId, status } = req.query;
-      const interviews = await storage.getInterviews(MOCK_USER_ID, {
+      const interviews = await storage.getInterviews(req.userId!, {
         applicationId: applicationId as string,
         status: status as string,
       });
@@ -118,10 +116,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/interviews/upcoming", async (req, res) => {
+  app.get("/api/interviews/upcoming", authenticateUser, async (req: AuthRequest, res) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 5;
-      const interviews = await storage.getUpcomingInterviews(MOCK_USER_ID, limit);
+      const interviews = await storage.getUpcomingInterviews(req.userId!, limit);
       res.json(interviews);
     } catch (error) {
       console.error("Error fetching upcoming interviews:", error);
@@ -129,9 +127,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/interviews/:id", async (req, res) => {
+  app.get("/api/interviews/:id", authenticateUser, async (req: AuthRequest, res) => {
     try {
-      const interview = await storage.getInterview(MOCK_USER_ID, req.params.id);
+      const interview = await storage.getInterview(req.userId!, req.params.id);
       if (!interview) {
         return res.status(404).json({ error: "Interview not found" });
       }
@@ -142,10 +140,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/interviews", async (req, res) => {
+  app.post("/api/interviews", authenticateUser, async (req: AuthRequest, res) => {
     try {
       const validatedData = insertInterviewSchema.parse(req.body);
-      const interview = await storage.createInterview(MOCK_USER_ID, validatedData);
+      const interview = await storage.createInterview(req.userId!, validatedData);
       res.status(201).json(interview);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -156,7 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/interviews/:id", async (req, res) => {
+  app.patch("/api/interviews/:id", authenticateUser, async (req: AuthRequest, res) => {
     try {
       const allowedFields: (keyof typeof insertInterviewSchema._type)[] = [
         "applicationId", "interviewType", "interviewDate", "durationMinutes",
@@ -175,7 +173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updates.interviewDate = new Date(updates.interviewDate);
       }
       
-      const interview = await storage.updateInterview(MOCK_USER_ID, req.params.id, updates);
+      const interview = await storage.updateInterview(req.userId!, req.params.id, updates);
       if (!interview) {
         return res.status(404).json({ error: "Interview not found" });
       }
@@ -186,9 +184,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/interviews/:id", async (req, res) => {
+  app.delete("/api/interviews/:id", authenticateUser, async (req: AuthRequest, res) => {
     try {
-      const success = await storage.deleteInterview(MOCK_USER_ID, req.params.id);
+      const success = await storage.deleteInterview(req.userId!, req.params.id);
       if (!success) {
         return res.status(404).json({ error: "Interview not found" });
       }
@@ -200,10 +198,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Resources routes
-  app.get("/api/resources", async (req, res) => {
+  app.get("/api/resources", authenticateUser, async (req: AuthRequest, res) => {
     try {
       const { category } = req.query;
-      const resources = await storage.getResources(MOCK_USER_ID, {
+      const resources = await storage.getResources(req.userId!, {
         category: category as string,
       });
       res.json(resources);
@@ -213,9 +211,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/resources/:id", async (req, res) => {
+  app.get("/api/resources/:id", authenticateUser, async (req: AuthRequest, res) => {
     try {
-      const resource = await storage.getResource(MOCK_USER_ID, req.params.id);
+      const resource = await storage.getResource(req.userId!, req.params.id);
       if (!resource) {
         return res.status(404).json({ error: "Resource not found" });
       }
@@ -226,10 +224,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/resources", async (req, res) => {
+  app.post("/api/resources", authenticateUser, async (req: AuthRequest, res) => {
     try {
       const validatedData = insertResourceSchema.parse(req.body);
-      const resource = await storage.createResource(MOCK_USER_ID, validatedData);
+      const resource = await storage.createResource(req.userId!, validatedData);
       res.status(201).json(resource);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -240,7 +238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/resources/:id", async (req, res) => {
+  app.patch("/api/resources/:id", authenticateUser, async (req: AuthRequest, res) => {
     try {
       const allowedFields: (keyof typeof insertResourceSchema._type)[] = [
         "title", "url", "category", "notes", "isReviewed", "linkedApplicationId"
@@ -251,7 +249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updates[field] = req.body[field];
         }
       }
-      const resource = await storage.updateResource(MOCK_USER_ID, req.params.id, updates);
+      const resource = await storage.updateResource(req.userId!, req.params.id, updates);
       if (!resource) {
         return res.status(404).json({ error: "Resource not found" });
       }
@@ -262,9 +260,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/resources/:id", async (req, res) => {
+  app.delete("/api/resources/:id", authenticateUser, async (req: AuthRequest, res) => {
     try {
-      const success = await storage.deleteResource(MOCK_USER_ID, req.params.id);
+      const success = await storage.deleteResource(req.userId!, req.params.id);
       if (!success) {
         return res.status(404).json({ error: "Resource not found" });
       }
@@ -276,10 +274,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Questions routes
-  app.get("/api/questions", async (req, res) => {
+  app.get("/api/questions", authenticateUser, async (req: AuthRequest, res) => {
     try {
       const { type, search } = req.query;
-      const questions = await storage.getQuestions(MOCK_USER_ID, {
+      const questions = await storage.getQuestions(req.userId!, {
         type: type as string,
         search: search as string,
       });
@@ -290,9 +288,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/questions/:id", async (req, res) => {
+  app.get("/api/questions/:id", authenticateUser, async (req: AuthRequest, res) => {
     try {
-      const question = await storage.getQuestion(MOCK_USER_ID, req.params.id);
+      const question = await storage.getQuestion(req.userId!, req.params.id);
       if (!question) {
         return res.status(404).json({ error: "Question not found" });
       }
@@ -303,10 +301,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/questions", async (req, res) => {
+  app.post("/api/questions", authenticateUser, async (req: AuthRequest, res) => {
     try {
       const validatedData = insertQuestionSchema.parse(req.body);
-      const question = await storage.createQuestion(MOCK_USER_ID, validatedData);
+      const question = await storage.createQuestion(req.userId!, validatedData);
       res.status(201).json(question);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -317,7 +315,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/questions/:id", async (req, res) => {
+  app.patch("/api/questions/:id", authenticateUser, async (req: AuthRequest, res) => {
     try {
       const allowedFields: (keyof typeof insertQuestionSchema._type)[] = [
         "questionText", "answerText", "questionType", "isFavorite", "tags"
@@ -328,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updates[field] = req.body[field];
         }
       }
-      const question = await storage.updateQuestion(MOCK_USER_ID, req.params.id, updates);
+      const question = await storage.updateQuestion(req.userId!, req.params.id, updates);
       if (!question) {
         return res.status(404).json({ error: "Question not found" });
       }
@@ -339,9 +337,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/questions/:id", async (req, res) => {
+  app.delete("/api/questions/:id", authenticateUser, async (req: AuthRequest, res) => {
     try {
-      const success = await storage.deleteQuestion(MOCK_USER_ID, req.params.id);
+      const success = await storage.deleteQuestion(req.userId!, req.params.id);
       if (!success) {
         return res.status(404).json({ error: "Question not found" });
       }
