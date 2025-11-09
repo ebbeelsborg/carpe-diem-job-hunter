@@ -190,24 +190,28 @@ export default function Dashboard() {
           value={stats?.total || 0}
           icon={Briefcase}
           testId="stat-total"
+          color="blue"
         />
         <StatsCard
           title="Upcoming Interviews"
           value={upcomingInterviews.length}
           icon={Calendar}
           testId="stat-interviews"
+          color="red"
         />
         <StatsCard
           title="In Progress"
           value={inProgressCount}
           icon={TrendingUp}
           testId="stat-progress"
+          color="yellow"
         />
         <StatsCard
           title="Offers"
           value={stats?.byStatus?.offer || 0}
           icon={CheckCircle}
           testId="stat-offers"
+          color="green"
         />
       </div>
 
