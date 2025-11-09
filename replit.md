@@ -119,3 +119,11 @@ Preferred communication style: Simple, everyday language.
 - Google Fonts CDN for Inter/DM Sans typography
 - Lucide React for consistent icon set
 - Rationale: Professional typography, comprehensive icon library with React components
+
+**Logo Integration**:
+- Clearbit Logo API - Free company logo service
+- Automatic logo display on application cards based on job URL or company name
+- Domain extraction logic: parses job URLs to extract company domain, falls back to company name + .com
+- Graceful fallback: displays Building2 icon if logo fails to load
+- No authentication required
+- Rationale: Enhances visual recognition of companies, professional appearance, zero configuration
