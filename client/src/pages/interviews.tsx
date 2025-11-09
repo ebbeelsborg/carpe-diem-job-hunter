@@ -39,6 +39,7 @@ export default function Interviews() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/interviews"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/interviews/upcoming"] });
       toast({
         title: "Success",
         description: "Interview scheduled successfully!",
@@ -53,8 +54,33 @@ export default function Interviews() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("DELETE", `/api/interviews/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/interviews"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/interviews/upcoming"] });
+      toast({
+        title: "Success",
+        description: "Interview deleted successfully!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete interview",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleAddInterview = async (data: InsertInterview) => {
     await createMutation.mutateAsync(data);
+  };
+
+  const handleDeleteInterview = async (id: string) => {
+    await deleteMutation.mutateAsync(id);
   };
 
   const upcomingInterviews = allInterviews.filter(
@@ -106,7 +132,7 @@ export default function Interviews() {
               </Button>
             </div>
           ) : (
-            <InterviewTimeline interviews={upcomingInterviews} />
+            <InterviewTimeline interviews={upcomingInterviews} onDelete={handleDeleteInterview} />
           )}
         </TabsContent>
 
@@ -124,7 +150,7 @@ export default function Interviews() {
               </p>
             </div>
           ) : (
-            <InterviewTimeline interviews={completedInterviews} />
+            <InterviewTimeline interviews={completedInterviews} onDelete={handleDeleteInterview} />
           )}
         </TabsContent>
       </Tabs>
