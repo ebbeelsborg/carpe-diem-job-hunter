@@ -117,15 +117,19 @@ export function ApplicationDetailsModal({
     }
   };
 
-  if (!application) return null;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Application Details</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+        {!application ? (
+          <div className="p-4 text-center text-muted-foreground">
+            Loading application details...
+          </div>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>Application Details</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="companyName">Company Name *</Label>
@@ -279,6 +283,8 @@ export function ApplicationDetailsModal({
             </div>
           </DialogFooter>
         </form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
