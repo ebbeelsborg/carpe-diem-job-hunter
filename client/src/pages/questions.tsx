@@ -132,7 +132,15 @@ export default function Questions() {
                     )}
                   </div>
                   <div className="flex gap-2 mb-3">
-                    <Badge variant="outline">
+                    <Badge 
+                      variant="outline"
+                      className={
+                        question.questionType === "behavioral" ? "border-blue-500 text-blue-700 bg-blue-50" :
+                        question.questionType === "technical" ? "border-green-500 text-green-700 bg-green-50" :
+                        question.questionType === "system_design" ? "border-purple-500 text-purple-700 bg-purple-50" :
+                        "border-orange-500 text-orange-700 bg-orange-50"
+                      }
+                    >
                       {question.questionType.replace("_", " ")}
                     </Badge>
                     {question.tags?.map((tag) => (
