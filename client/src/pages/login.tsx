@@ -52,7 +52,7 @@ export default function Login() {
           <div className="flex items-center justify-center mb-4">
             <Briefcase className="h-12 w-12 text-primary" />
           </div>
-          <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
+          <CardTitle className="text-2xl text-center">Carpe Diem Job Hunter</CardTitle>
           <CardDescription className="text-center">
             Sign in to your interview prep tracker
           </CardDescription>
