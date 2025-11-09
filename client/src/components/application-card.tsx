@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "./status-badge";
 import { MapPin, DollarSign, Calendar as CalendarIcon, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import type { Application } from "@shared/schema";
+import { getCompanyLogoUrl } from "@/lib/logo";
 
 interface ApplicationCardProps {
   application: Application;
@@ -27,7 +29,9 @@ export function ApplicationCard({
   onScheduleInterview,
   onViewDetails,
 }: ApplicationCardProps) {
+  const [logoError, setLogoError] = useState(false);
   const statusColor = statusColors[application.status] || "border-l-gray-400";
+  const logoUrl = getCompanyLogoUrl(application.jobUrl, application.companyName);
 
   return (
     <Card
@@ -36,8 +40,18 @@ export function ApplicationCard({
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-secondary rounded-md flex items-center justify-center">
-            <Building2 className="h-5 w-5 text-muted-foreground" />
+          <div className="w-10 h-10 bg-secondary rounded-md flex items-center justify-center overflow-hidden">
+            {!logoError ? (
+              <img
+                src={logoUrl}
+                alt={`${application.companyName} logo`}
+                className="w-full h-full object-contain"
+                onError={() => setLogoError(true)}
+                data-testid="img-company-logo"
+              />
+            ) : (
+              <Building2 className="h-5 w-5 text-muted-foreground" />
+            )}
           </div>
           <div>
             <h3 className="text-lg font-semibold" data-testid="text-company-name">
