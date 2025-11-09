@@ -86,7 +86,7 @@ export function AddInterviewModal({
     try {
       const submitData: InsertInterview = {
         ...data,
-        interviewDate: new Date(data.interviewDate),
+        interviewDate: new Date(`${data.interviewDate}T12:00:00`),
         durationMinutes: data.durationMinutes ? Number(data.durationMinutes) : undefined,
         rating: data.rating ? Number(data.rating) : undefined,
       };
