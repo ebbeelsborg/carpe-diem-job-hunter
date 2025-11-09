@@ -75,7 +75,11 @@ Preferred communication style: Simple, everyday language.
 
 **Schema Design Rationale**: Uses UUID primary keys for distributed system compatibility. Foreign keys maintain referential integrity. Enum types enforce valid status/type values at database level. Timestamps track creation for auditing. Nullable fields allow progressive data entry.
 
+**Date Serialization**: Insert schemas use `z.union([z.string(), z.date()]).transform()` to handle JSON date serialization. When dates are sent from frontend to backend via JSON, they become ISO strings. The schema accepts both string and Date types and transforms strings to Date objects before database insertion.
+
 **Migration Strategy**: Drizzle Kit manages schema migrations with `db:push` command. Migration files stored in `migrations/` directory for version control and deployment tracking.
+
+**Security**: All storage operations require `userId` parameter and filter queries by user. PATCH endpoints use field whitelisting to prevent unauthorized updates. This ensures multi-tenant data isolation.
 
 ### External Dependencies
 
