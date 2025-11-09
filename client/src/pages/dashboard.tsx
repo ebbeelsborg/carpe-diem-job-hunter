@@ -4,15 +4,21 @@ import { StatsCard } from "@/components/stats-card";
 import { InterviewTimeline } from "@/components/interview-timeline";
 import { ApplicationCard } from "@/components/application-card";
 import { AddApplicationModal } from "@/components/add-application-modal";
+import { AddInterviewModal } from "@/components/add-interview-modal";
+import { ApplicationDetailsModal } from "@/components/application-details-modal";
 import { Button } from "@/components/ui/button";
 import { Briefcase, Calendar, TrendingUp, CheckCircle, Plus } from "lucide-react";
-import type { Application, Interview, InsertApplication } from "@shared/schema";
+import type { Application, Interview, InsertApplication, InsertInterview } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 
 export default function Dashboard() {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showInterviewModal, setShowInterviewModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+  const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const { toast } = useToast();
 
   const { data: stats } = useQuery<{ total: number; byStatus: Record<string, number> }>({
@@ -38,6 +44,10 @@ export default function Dashboard() {
       const data = await response.json();
       return data.slice(0, 2);
     },
+  });
+
+  const { data: allApplications = [] } = useQuery<Application[]>({
+    queryKey: ["/api/applications"],
   });
 
   const createMutation = useMutation({
@@ -73,6 +83,95 @@ export default function Dashboard() {
         },
       });
     });
+  };
+
+  const interviewMutation = useMutation({
+    mutationFn: async (data: InsertInterview) => {
+      return await apiRequest("POST", "/api/interviews", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/interviews"] });
+      setShowInterviewModal(false);
+      toast({
+        title: "Success",
+        description: "Interview scheduled successfully!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to schedule interview",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleScheduleInterview = (applicationId: string) => {
+    setSelectedApplicationId(applicationId);
+    setShowInterviewModal(true);
+  };
+
+  const handleAddInterview = async (data: InsertInterview) => {
+    await interviewMutation.mutateAsync(data);
+  };
+
+  const handleViewDetails = (applicationId: string) => {
+    const app = recentApplications.find(a => a.id === applicationId) || 
+                allApplications.find(a => a.id === applicationId);
+    if (app) {
+      setSelectedApplication(app);
+      setShowDetailsModal(true);
+    }
+  };
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertApplication> }) => {
+      return await apiRequest("PATCH", `/api/applications/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/applications/stats"] });
+      toast({
+        title: "Success",
+        description: "Application updated successfully!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update application",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("DELETE", `/api/applications/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/applications/stats"] });
+      toast({
+        title: "Success",
+        description: "Application deleted successfully!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete application",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleUpdateApplication = async (id: string, data: Partial<InsertApplication>) => {
+    await updateMutation.mutateAsync({ id, data });
+  };
+
+  const handleDeleteApplication = async (id: string) => {
+    await deleteMutation.mutateAsync(id);
   };
 
   const inProgressCount =
@@ -149,8 +248,8 @@ export default function Dashboard() {
                 <ApplicationCard
                   key={app.id}
                   application={app}
-                  onScheduleInterview={(id) => console.log("Schedule interview for", id)}
-                  onViewDetails={(id) => console.log("View details for", id)}
+                  onScheduleInterview={handleScheduleInterview}
+                  onViewDetails={handleViewDetails}
                 />
               ))}
             </div>
@@ -162,6 +261,22 @@ export default function Dashboard() {
         open={showAddModal}
         onOpenChange={setShowAddModal}
         onSubmit={handleAddApplication}
+      />
+
+      <AddInterviewModal
+        open={showInterviewModal}
+        onOpenChange={setShowInterviewModal}
+        onSubmit={handleAddInterview}
+        applications={allApplications}
+        preselectedApplicationId={selectedApplicationId}
+      />
+
+      <ApplicationDetailsModal
+        open={showDetailsModal}
+        onOpenChange={setShowDetailsModal}
+        onUpdate={handleUpdateApplication}
+        onDelete={handleDeleteApplication}
+        application={selectedApplication}
       />
     </div>
   );

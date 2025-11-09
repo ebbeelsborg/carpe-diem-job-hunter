@@ -73,6 +73,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updates[field] = req.body[field];
         }
       }
+      
+      // Convert date strings to Date objects
+      if (updates.applicationDate && typeof updates.applicationDate === 'string') {
+        updates.applicationDate = new Date(updates.applicationDate);
+      }
+      
       const application = await storage.updateApplication(MOCK_USER_ID, req.params.id, updates);
       if (!application) {
         return res.status(404).json({ error: "Application not found" });
@@ -163,6 +169,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updates[field] = req.body[field];
         }
       }
+      
+      // Convert date strings to Date objects
+      if (updates.interviewDate && typeof updates.interviewDate === 'string') {
+        updates.interviewDate = new Date(updates.interviewDate);
+      }
+      
       const interview = await storage.updateInterview(MOCK_USER_ID, req.params.id, updates);
       if (!interview) {
         return res.status(404).json({ error: "Interview not found" });

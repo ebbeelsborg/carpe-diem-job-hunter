@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertInterviewSchema } from "@shared/schema";
@@ -24,8 +25,12 @@ import { z } from "zod";
 
 const formSchema = insertInterviewSchema.omit({
   interviewDate: true,
+  durationMinutes: true,
+  rating: true,
 }).extend({
   interviewDate: z.string(),
+  durationMinutes: z.coerce.number().optional().or(z.literal('')),
+  rating: z.coerce.number().min(1).max(5).optional().or(z.literal('')),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -35,6 +40,7 @@ interface AddInterviewModalProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: InsertInterview) => Promise<void>;
   applications: Application[];
+  preselectedApplicationId?: string | null;
 }
 
 export function AddInterviewModal({
@@ -42,6 +48,7 @@ export function AddInterviewModal({
   onOpenChange,
   onSubmit,
   applications,
+  preselectedApplicationId,
 }: AddInterviewModalProps) {
   const {
     register,
@@ -62,6 +69,18 @@ export function AddInterviewModal({
   const applicationId = watch("applicationId");
   const interviewType = watch("interviewType");
   const status = watch("status");
+
+  useEffect(() => {
+    if (open && preselectedApplicationId) {
+      setValue("applicationId", preselectedApplicationId, { shouldValidate: true });
+    }
+  }, [open, preselectedApplicationId, setValue]);
+
+  useEffect(() => {
+    if (!open) {
+      reset();
+    }
+  }, [open, reset]);
 
   const handleFormSubmit = async (data: FormData) => {
     try {
