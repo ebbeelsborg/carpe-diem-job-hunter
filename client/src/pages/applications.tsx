@@ -218,6 +218,14 @@ export default function Applications() {
               application={app}
               onScheduleInterview={handleScheduleInterview}
               onViewDetails={handleViewDetails}
+              onEdit={(id) => {
+                const app = applications.find(a => a.id === id);
+                if (app) {
+                  setSelectedApplication(app);
+                  setShowDetailsModal(true);
+                }
+              }}
+              onDelete={handleDeleteApplication}
             />
           ))}
         </div>

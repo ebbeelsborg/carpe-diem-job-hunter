@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { StatusBadge } from "./status-badge";
-import { MapPin, DollarSign, Calendar as CalendarIcon, Building2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { MapPin, DollarSign, Calendar as CalendarIcon, Building2, MoreVertical, Pencil, CalendarPlus, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import type { Application } from "@shared/schema";
 import { getCompanyLogoUrl } from "@/lib/logo";
@@ -11,6 +17,8 @@ interface ApplicationCardProps {
   application: Application;
   onScheduleInterview?: (applicationId: string) => void;
   onViewDetails?: (applicationId: string) => void;
+  onEdit?: (applicationId: string) => void;
+  onDelete?: (applicationId: string) => void;
 }
 
 const statusColors: Record<string, string> = {
@@ -28,6 +36,8 @@ export function ApplicationCard({
   application,
   onScheduleInterview,
   onViewDetails,
+  onEdit,
+  onDelete,
 }: ApplicationCardProps) {
   const [logoError, setLogoError] = useState(false);
   const statusColor = statusColors[application.status] || "border-l-gray-400";
@@ -35,7 +45,8 @@ export function ApplicationCard({
 
   return (
     <Card
-      className={`p-6 border-l-4 ${statusColor} hover-elevate transition-shadow`}
+      className={`p-6 border-l-4 ${statusColor} hover-elevate transition-shadow cursor-pointer`}
+      onClick={() => onViewDetails?.(application.id)}
       data-testid={`card-application-${application.id}`}
     >
       <div className="flex items-start justify-between mb-4">
@@ -62,10 +73,62 @@ export function ApplicationCard({
             </p>
           </div>
         </div>
-        <StatusBadge status={application.status} />
+        <div className="flex items-center gap-2">
+          <StatusBadge status={application.status} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button
+                variant="ghost"
+                size="icon"
+                data-testid={`button-menu-${application.id}`}
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {onEdit && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(application.id);
+                  }}
+                  data-testid={`menu-edit-${application.id}`}
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+              )}
+              {onScheduleInterview && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onScheduleInterview(application.id);
+                  }}
+                  data-testid={`menu-schedule-${application.id}`}
+                >
+                  <CalendarPlus className="h-4 w-4 mr-2" />
+                  Schedule Interview
+                </DropdownMenuItem>
+              )}
+              {onDelete && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(application.id);
+                  }}
+                  className="text-destructive focus:text-destructive"
+                  data-testid={`menu-delete-${application.id}`}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      <div className="space-y-2 mb-4">
+      <div className="space-y-2">
         {application.location && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4" />
@@ -91,26 +154,6 @@ export function ApplicationCard({
           <CalendarIcon className="h-4 w-4" />
           <span>Applied {format(new Date(application.applicationDate), "MMM d, yyyy")}</span>
         </div>
-      </div>
-
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1"
-          onClick={() => onViewDetails?.(application.id)}
-          data-testid="button-view-details"
-        >
-          View Details
-        </Button>
-        <Button
-          size="sm"
-          className="flex-1"
-          onClick={() => onScheduleInterview?.(application.id)}
-          data-testid="button-schedule-interview"
-        >
-          Schedule Interview
-        </Button>
       </div>
     </Card>
   );

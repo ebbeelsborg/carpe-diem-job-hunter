@@ -10,7 +10,7 @@ interface StatsCardProps {
 
 export function StatsCard({ title, value, icon: Icon, testId }: StatsCardProps) {
   return (
-    <Card className="p-6">
+    <Card className="p-6 hover-elevate transition-shadow">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium text-muted-foreground">{title}</p>

@@ -235,6 +235,15 @@ export default function Dashboard() {
                   application={app}
                   onScheduleInterview={handleScheduleInterview}
                   onViewDetails={handleViewDetails}
+                  onEdit={(id) => {
+                    const app = recentApplications.find(a => a.id === id) || 
+                                allApplications.find(a => a.id === id);
+                    if (app) {
+                      setSelectedApplication(app);
+                      setShowDetailsModal(true);
+                    }
+                  }}
+                  onDelete={handleDeleteApplication}
                 />
               ))}
             </div>
