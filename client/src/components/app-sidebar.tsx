@@ -1,4 +1,4 @@
-import { Home, Briefcase, Calendar, Book, Lightbulb, BarChart3 } from "lucide-react";
+import { Home, Briefcase, Calendar, Book, Lightbulb, BarChart3, Settings } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -42,6 +42,11 @@ const items = [
     url: "/stats",
     icon: BarChart3,
   },
+  {
+    title: "Settings",
+    url: "/settings",
+    icon: Settings,
+  },
 ];
 
 export function AppSidebar() {
@@ -52,7 +57,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-lg font-bold px-4 py-4">
-            Interview Prep
+            Carpe Diem Job Hunter
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>

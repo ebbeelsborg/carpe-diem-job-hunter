@@ -6,7 +6,6 @@ import { ApplicationCard } from "@/components/application-card";
 import { AddApplicationModal } from "@/components/add-application-modal";
 import { AddInterviewModal } from "@/components/add-interview-modal";
 import { ApplicationDetailsModal } from "@/components/application-details-modal";
-import { TimezoneSelector } from "@/components/timezone-selector";
 import { Button } from "@/components/ui/button";
 import { Briefcase, Calendar, TrendingUp, CheckCircle, Plus } from "lucide-react";
 import type { Application, Interview, InsertApplication, InsertInterview } from "@shared/schema";
@@ -176,7 +175,6 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <TimezoneSelector compact />
           <Button onClick={() => setShowAddModal(true)} data-testid="button-add-application">
             <Plus className="h-4 w-4 mr-2" />
             Add Application
