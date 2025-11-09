@@ -81,6 +81,7 @@ export default function Applications() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/interviews"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/interviews/upcoming"] });
       setShowInterviewModal(false);
       toast({
         title: "Success",
