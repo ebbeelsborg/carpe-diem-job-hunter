@@ -61,7 +61,7 @@ export default function Applications() {
     },
   });
 
-  const handleAddApplication = async (data: InsertApplication) => {
+  const handleAddApplication = async (data: InsertApplication): Promise<void> => {
     return new Promise((resolve, reject) => {
       createMutation.mutate(data, {
         onSuccess: () => {
