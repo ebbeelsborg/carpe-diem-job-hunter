@@ -85,7 +85,7 @@ export default function Resources() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="all" data-testid="tab-all">All</TabsTrigger>
-          <TabsTrigger value="algorithms" data-testid="tab-algorithms">Algorithms</TabsTrigger>
+          <TabsTrigger value="algorithms" data-testid="tab-algorithms">Coding</TabsTrigger>
           <TabsTrigger value="system_design" data-testid="tab-system-design">System Design</TabsTrigger>
           <TabsTrigger value="behavioral" data-testid="tab-behavioral">Behavioral</TabsTrigger>
           <TabsTrigger value="company_specific" data-testid="tab-company">Company Specific</TabsTrigger>

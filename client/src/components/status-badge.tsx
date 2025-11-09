@@ -20,23 +20,23 @@ const statusConfig: Record<
 > = {
   applied: {
     label: "Applied",
-    className: "bg-blue-50 text-blue-700 border-blue-200",
+    className: "bg-gray-50 text-gray-700 border-gray-200",
   },
   phone_screen: {
     label: "Phone Screen",
-    className: "bg-purple-50 text-purple-700 border-purple-200",
+    className: "bg-cyan-50 text-cyan-700 border-cyan-200",
   },
   technical: {
     label: "Technical",
-    className: "bg-orange-50 text-orange-700 border-orange-200",
+    className: "bg-green-50 text-green-700 border-green-200",
   },
   onsite: {
     label: "Onsite",
-    className: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    className: "bg-purple-50 text-purple-700 border-purple-200",
   },
   final: {
     label: "Final",
-    className: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    className: "bg-red-50 text-red-700 border-red-200",
   },
   offer: {
     label: "Offer",

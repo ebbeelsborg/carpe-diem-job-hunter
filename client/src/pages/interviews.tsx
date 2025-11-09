@@ -3,21 +3,24 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { InterviewTimeline } from "@/components/interview-timeline";
 import { AddInterviewModal } from "@/components/add-interview-modal";
 import { EditInterviewModal } from "@/components/edit-interview-modal";
+import { ApplicationDetailsModal } from "@/components/application-details-modal";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Plus } from "lucide-react";
-import type { Interview, Application, InsertInterview } from "@shared/schema";
+import type { Interview, Application, InsertInterview, InsertApplication } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Interviews() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [selectedInterview, setSelectedInterview] = useState<Interview | null>(null);
+  const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const { toast } = useToast();
 
   const { data: allInterviews = [], isLoading } = useQuery<
-    (Interview & { companyName?: string; positionTitle?: string })[]
+    (Interview & { companyName?: string; positionTitle?: string; jobUrl?: string })[]
   >({
     queryKey: ["/api/interviews"],
     queryFn: async () => {
@@ -108,6 +111,56 @@ export default function Interviews() {
     await deleteMutation.mutateAsync(id);
   };
 
+  const handleViewApplication = (applicationId: string) => {
+    const app = applications.find(a => a.id === applicationId);
+    if (app) {
+      setSelectedApplication(app);
+      setShowApplicationModal(true);
+    }
+  };
+
+  const updateApplicationMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertApplication> }) => {
+      return await apiRequest("PATCH", `/api/applications/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/interviews"] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update application",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteApplicationMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("DELETE", `/api/applications/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/interviews"] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete application",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleUpdateApplication = async (id: string, data: Partial<InsertApplication>) => {
+    await updateApplicationMutation.mutateAsync({ id, data });
+  };
+
+  const handleDeleteApplication = async (id: string) => {
+    await deleteApplicationMutation.mutateAsync(id);
+  };
+
   const upcomingInterviews = allInterviews.filter(
     (i) => i.status === "scheduled" && new Date(i.interviewDate) > new Date()
   );
@@ -160,7 +213,8 @@ export default function Interviews() {
             <InterviewTimeline 
               interviews={upcomingInterviews} 
               onEdit={handleEditInterview}
-              onDelete={handleDeleteInterview} 
+              onDelete={handleDeleteInterview}
+              onViewApplication={handleViewApplication}
             />
           )}
         </TabsContent>
@@ -182,7 +236,8 @@ export default function Interviews() {
             <InterviewTimeline 
               interviews={completedInterviews} 
               onEdit={handleEditInterview}
-              onDelete={handleDeleteInterview} 
+              onDelete={handleDeleteInterview}
+              onViewApplication={handleViewApplication}
             />
           )}
         </TabsContent>
@@ -201,6 +256,15 @@ export default function Interviews() {
         onSubmit={handleUpdateInterview}
         applications={applications}
         interview={selectedInterview}
+      />
+
+      <ApplicationDetailsModal
+        open={showApplicationModal}
+        onOpenChange={setShowApplicationModal}
+        onUpdate={handleUpdateApplication}
+        onDelete={handleDeleteApplication}
+        application={selectedApplication}
+        viewOnly={true}
       />
     </div>
   );

@@ -42,6 +42,7 @@ interface ApplicationDetailsModalProps {
   onUpdate: (id: string, data: Partial<InsertApplication>) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
   application: Application | null;
+  viewOnly?: boolean;
 }
 
 export function ApplicationDetailsModal({
@@ -50,6 +51,7 @@ export function ApplicationDetailsModal({
   onUpdate,
   onDelete,
   application,
+  viewOnly = false,
 }: ApplicationDetailsModalProps) {
   const {
     register,
@@ -136,6 +138,7 @@ export function ApplicationDetailsModal({
                 {...register("companyName")}
                 placeholder="e.g., Google"
                 data-testid="input-company-name"
+                readOnly={viewOnly}
               />
               {errors.companyName && (
                 <p className="text-sm text-destructive">{errors.companyName.message}</p>
@@ -148,6 +151,7 @@ export function ApplicationDetailsModal({
                 {...register("positionTitle")}
                 placeholder="e.g., Senior Software Engineer"
                 data-testid="input-position-title"
+                readOnly={viewOnly}
               />
               {errors.positionTitle && (
                 <p className="text-sm text-destructive">{errors.positionTitle.message}</p>
@@ -161,6 +165,7 @@ export function ApplicationDetailsModal({
               <Select
                 value={watch("status")}
                 onValueChange={(value) => setValue("status", value as any)}
+                disabled={viewOnly}
               >
                 <SelectTrigger data-testid="select-status">
                   <SelectValue />
@@ -184,6 +189,7 @@ export function ApplicationDetailsModal({
                 type="date"
                 {...register("applicationDate")}
                 data-testid="input-application-date"
+                readOnly={viewOnly}
               />
             </div>
           </div>
@@ -195,6 +201,7 @@ export function ApplicationDetailsModal({
               {...register("location")}
               placeholder="e.g., San Francisco, CA"
               data-testid="input-location"
+              readOnly={viewOnly}
             />
           </div>
 
@@ -204,6 +211,7 @@ export function ApplicationDetailsModal({
               checked={watch("isRemote") || false}
               onCheckedChange={(checked) => setValue("isRemote", checked)}
               data-testid="switch-remote"
+              disabled={viewOnly}
             />
             <Label htmlFor="isRemote">Remote Position</Label>
           </div>
@@ -217,6 +225,7 @@ export function ApplicationDetailsModal({
                 {...register("salaryMin")}
                 placeholder="e.g., 120000"
                 data-testid="input-salary-min"
+                readOnly={viewOnly}
               />
             </div>
             <div className="space-y-2">
@@ -227,6 +236,7 @@ export function ApplicationDetailsModal({
                 {...register("salaryMax")}
                 placeholder="e.g., 180000"
                 data-testid="input-salary-max"
+                readOnly={viewOnly}
               />
             </div>
           </div>
@@ -239,6 +249,7 @@ export function ApplicationDetailsModal({
               {...register("jobUrl")}
               placeholder="https://..."
               data-testid="input-job-url"
+              readOnly={viewOnly}
             />
           </div>
 
@@ -250,35 +261,50 @@ export function ApplicationDetailsModal({
               placeholder="Any additional notes about this application..."
               rows={4}
               data-testid="textarea-notes"
+              readOnly={viewOnly}
             />
           </div>
 
           <DialogFooter className="flex justify-between">
-            <div>
-              {onDelete && (
+            {viewOnly ? (
+              <div className="flex justify-end w-full">
                 <Button
                   type="button"
-                  variant="destructive"
-                  onClick={handleDelete}
-                  data-testid="button-delete"
+                  onClick={() => onOpenChange(false)}
+                  data-testid="button-close"
                 >
-                  Delete Application
+                  Close
                 </Button>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                data-testid="button-cancel"
-              >
-                Cancel
-              </Button>
-              <Button type="submit" data-testid="button-save">
-                Save Changes
-              </Button>
-            </div>
+              </div>
+            ) : (
+              <>
+                <div>
+                  {onDelete && (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={handleDelete}
+                      data-testid="button-delete"
+                    >
+                      Delete Application
+                    </Button>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                    data-testid="button-cancel"
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" data-testid="button-save">
+                    Save Changes
+                  </Button>
+                </div>
+              </>
+            )}
           </DialogFooter>
         </form>
           </>

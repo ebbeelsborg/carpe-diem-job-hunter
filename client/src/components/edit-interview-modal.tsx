@@ -27,10 +27,12 @@ const formSchema = insertInterviewSchema.omit({
   interviewDate: true,
   durationMinutes: true,
   rating: true,
+  platform: true,
 }).extend({
   interviewDate: z.string(),
-  durationMinutes: z.coerce.number().optional().or(z.literal('')),
+  durationMinutes: z.coerce.number().min(1, "Duration is required"),
   rating: z.coerce.number().min(1).max(5).optional().or(z.literal('')),
+  platform: z.string().min(1, "Platform is required"),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -173,7 +175,7 @@ export function EditInterviewModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="durationMinutes">Duration (minutes)</Label>
+              <Label htmlFor="durationMinutes">Duration (minutes) *</Label>
               <Input
                 id="durationMinutes"
                 type="number"
@@ -181,16 +183,22 @@ export function EditInterviewModal({
                 placeholder="e.g., 60"
                 data-testid="input-duration"
               />
+              {errors.durationMinutes && (
+                <p className="text-sm text-destructive">{errors.durationMinutes.message}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="platform">Platform</Label>
+              <Label htmlFor="platform">Platform (URL) *</Label>
               <Input
                 id="platform"
                 {...register("platform")}
                 placeholder="e.g., Zoom, Google Meet"
                 data-testid="input-platform"
               />
+              {errors.platform && (
+                <p className="text-sm text-destructive">{errors.platform.message}</p>
+              )}
             </div>
           </div>
 

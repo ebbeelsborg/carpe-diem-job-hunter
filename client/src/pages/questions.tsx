@@ -91,6 +91,7 @@ export default function Questions() {
             <SelectItem value="technical">Technical</SelectItem>
             <SelectItem value="system_design">System Design</SelectItem>
             <SelectItem value="company_culture">Company Culture</SelectItem>
+            <SelectItem value="experience">Experience</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -135,10 +136,11 @@ export default function Questions() {
                     <Badge 
                       variant="outline"
                       className={
-                        question.questionType === "behavioral" ? "border-blue-500 text-blue-700 bg-blue-50" :
-                        question.questionType === "technical" ? "border-green-500 text-green-700 bg-green-50" :
-                        question.questionType === "system_design" ? "border-purple-500 text-purple-700 bg-purple-50" :
-                        "border-orange-500 text-orange-700 bg-orange-50"
+                        question.questionType === "behavioral" ? "border-blue-500 text-blue-700 bg-blue-50 capitalize" :
+                        question.questionType === "technical" ? "border-green-500 text-green-700 bg-green-50 capitalize" :
+                        question.questionType === "system_design" ? "border-purple-500 text-purple-700 bg-purple-50 capitalize" :
+                        question.questionType === "experience" ? "border-pink-500 text-pink-700 bg-pink-50 capitalize" :
+                        "border-orange-500 text-orange-700 bg-orange-50 capitalize"
                       }
                     >
                       {question.questionType.replace("_", " ")}

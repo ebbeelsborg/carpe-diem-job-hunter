@@ -27,7 +27,7 @@ export default function Dashboard() {
   });
 
   const { data: upcomingInterviews = [] } = useQuery<
-    (Interview & { companyName?: string; positionTitle?: string })[]
+    (Interview & { companyName?: string; positionTitle?: string; jobUrl?: string })[]
   >({
     queryKey: ["/api/interviews/upcoming"],
     queryFn: async () => {
@@ -218,7 +218,10 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
           <h2 className="text-xl font-semibold mb-4">Upcoming Interviews</h2>
-          <InterviewTimeline interviews={upcomingInterviews} />
+          <InterviewTimeline 
+            interviews={upcomingInterviews} 
+            onViewApplication={handleViewDetails}
+          />
         </div>
         <div>
           <h2 className="text-xl font-semibold mb-4">Recent Applications</h2>

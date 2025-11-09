@@ -48,7 +48,8 @@ export const questionTypeEnum = pgEnum("question_type", [
   "behavioral",
   "technical",
   "system_design",
-  "company_culture"
+  "company_culture",
+  "experience"
 ]);
 
 export const applications = pgTable("applications", {

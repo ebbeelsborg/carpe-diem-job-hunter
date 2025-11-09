@@ -36,8 +36,8 @@ export interface IStorage {
   }>;
 
   // Interviews
-  getInterviews(userId: string, filters?: { applicationId?: string; status?: string }): Promise<(Interview & { companyName?: string; positionTitle?: string })[]>;
-  getUpcomingInterviews(userId: string, limit?: number): Promise<(Interview & { companyName?: string; positionTitle?: string })[]>;
+  getInterviews(userId: string, filters?: { applicationId?: string; status?: string }): Promise<(Interview & { companyName?: string; positionTitle?: string; jobUrl?: string })[]>;
+  getUpcomingInterviews(userId: string, limit?: number): Promise<(Interview & { companyName?: string; positionTitle?: string; jobUrl?: string })[]>;
   getInterview(userId: string, id: string): Promise<Interview | undefined>;
   createInterview(userId: string, interview: InsertInterview): Promise<Interview>;
   updateInterview(userId: string, id: string, interview: Partial<InsertInterview>): Promise<Interview | undefined>;
@@ -144,7 +144,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Interviews
-  async getInterviews(userId: string, filters?: { applicationId?: string; status?: string }): Promise<(Interview & { companyName?: string; positionTitle?: string })[]> {
+  async getInterviews(userId: string, filters?: { applicationId?: string; status?: string }): Promise<(Interview & { companyName?: string; positionTitle?: string; jobUrl?: string })[]> {
     const conditions = [eq(applications.userId, userId)];
 
     if (filters?.applicationId) {
@@ -173,6 +173,7 @@ export class DatabaseStorage implements IStorage {
         createdAt: interviews.createdAt,
         companyName: applications.companyName,
         positionTitle: applications.positionTitle,
+        jobUrl: applications.jobUrl,
       })
       .from(interviews)
       .innerJoin(applications, eq(interviews.applicationId, applications.id))
@@ -182,7 +183,7 @@ export class DatabaseStorage implements IStorage {
     return results;
   }
 
-  async getUpcomingInterviews(userId: string, limit: number = 5): Promise<(Interview & { companyName?: string; positionTitle?: string })[]> {
+  async getUpcomingInterviews(userId: string, limit: number = 5): Promise<(Interview & { companyName?: string; positionTitle?: string; jobUrl?: string })[]> {
     const now = new Date();
     
     const results = await db
@@ -203,6 +204,7 @@ export class DatabaseStorage implements IStorage {
         createdAt: interviews.createdAt,
         companyName: applications.companyName,
         positionTitle: applications.positionTitle,
+        jobUrl: applications.jobUrl,
       })
       .from(interviews)
       .innerJoin(applications, eq(interviews.applicationId, applications.id))

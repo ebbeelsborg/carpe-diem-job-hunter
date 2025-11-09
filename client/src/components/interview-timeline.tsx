@@ -12,15 +12,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Calendar, Clock, Video, Trash2, Pencil } from "lucide-react";
+import { Calendar, Clock, Video, Trash2, Pencil, User, Building2, ExternalLink } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { Interview } from "@shared/schema";
 import { formatDateTimeInUserTz } from "@/lib/timezone";
+import { getCompanyLogoUrl } from "@/lib/logo";
 
 interface InterviewTimelineProps {
-  interviews: (Interview & { companyName?: string; positionTitle?: string })[];
+  interviews: (Interview & { companyName?: string; positionTitle?: string; jobUrl?: string })[];
   onDelete?: (id: string) => void;
   onEdit?: (id: string) => void;
+  onViewApplication?: (applicationId: string) => void;
 }
 
 const interviewTypeLabels: Record<string, string> = {
@@ -32,10 +34,36 @@ const interviewTypeLabels: Record<string, string> = {
   other: "Interview",
 };
 
-export function InterviewTimeline({ interviews, onDelete, onEdit }: InterviewTimelineProps) {
+export function InterviewTimeline({ interviews, onDelete, onEdit, onViewApplication }: InterviewTimelineProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [interviewToDelete, setInterviewToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [logoErrors, setLogoErrors] = useState<Record<string, boolean>>({});
+
+  const isValidUrl = (url: string): boolean => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      // Try with https:// prefix for URLs without protocol
+      try {
+        new URL(`https://${url}`);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+  };
+
+  const getValidUrl = (url: string): string => {
+    try {
+      new URL(url);
+      return url;
+    } catch {
+      // Add https:// prefix for URLs without protocol
+      return `https://${url}`;
+    }
+  };
 
   const handleDeleteClick = (id: string) => {
     setInterviewToDelete(id);
@@ -80,8 +108,17 @@ export function InterviewTimeline({ interviews, onDelete, onEdit }: InterviewTim
           >
             <div className="flex gap-4">
               <div className="flex flex-col items-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Calendar className="h-5 w-5 text-primary" />
+                <div className="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center overflow-hidden">
+                  {!logoErrors[interview.id] && interview.companyName ? (
+                    <img
+                      src={getCompanyLogoUrl(interview.jobUrl, interview.companyName)}
+                      alt={`${interview.companyName} logo`}
+                      className="w-full h-full object-contain"
+                      onError={() => setLogoErrors(prev => ({ ...prev, [interview.id]: true }))}
+                    />
+                  ) : (
+                    <Building2 className="h-5 w-5 text-muted-foreground" />
+                  )}
                 </div>
                 {index < interviews.length - 1 && (
                   <div className="w-0.5 h-full bg-border mt-2" />
@@ -98,9 +135,30 @@ export function InterviewTimeline({ interviews, onDelete, onEdit }: InterviewTim
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline">
+                    <Badge
+                      variant="outline"
+                      className={
+                        interview.interviewType === "phone_screen" ? "border-cyan-500 text-cyan-700 bg-cyan-50" :
+                        interview.interviewType === "technical" ? "border-green-500 text-green-700 bg-green-50" :
+                        interview.interviewType === "system_design" ? "border-purple-500 text-purple-700 bg-purple-50" :
+                        interview.interviewType === "behavioral" ? "border-blue-500 text-blue-700 bg-blue-50" :
+                        interview.interviewType === "final" ? "border-red-500 text-red-700 bg-red-50" :
+                        "border-gray-500 text-gray-700 bg-gray-50"
+                      }
+                    >
                       {interviewTypeLabels[interview.interviewType]}
                     </Badge>
+                    {onViewApplication && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onViewApplication(interview.applicationId)}
+                        data-testid={`button-view-application-${interview.id}`}
+                        title="View Application"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    )}
                     {onEdit && (
                       <Button
                         variant="ghost"
@@ -136,7 +194,25 @@ export function InterviewTimeline({ interviews, onDelete, onEdit }: InterviewTim
                   {interview.platform && (
                     <div className="flex items-center gap-2">
                       <Video className="h-4 w-4" />
-                      <span>{interview.platform}</span>
+                      {isValidUrl(interview.platform) ? (
+                        <a
+                          href={getValidUrl(interview.platform)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {interview.platform}
+                        </a>
+                      ) : (
+                        <span>{interview.platform}</span>
+                      )}
+                    </div>
+                  )}
+                  {interview.interviewerNames && (
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span>{interview.interviewerNames}</span>
                     </div>
                   )}
                 </div>

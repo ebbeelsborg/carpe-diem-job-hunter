@@ -30,7 +30,14 @@ const formSchema = insertApplicationSchema.omit({
   salaryMin: true,
   salaryMax: true,
 }).extend({
-  applicationDate: z.string(),
+  applicationDate: z.string().refine((date) => {
+    const selectedDate = new Date(date);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // End of today
+    return selectedDate <= today;
+  }, {
+    message: "Application date cannot be in the future",
+  }),
   salaryMin: z.coerce.number().optional().or(z.literal('')),
   salaryMax: z.coerce.number().optional().or(z.literal('')),
 });
@@ -147,9 +154,13 @@ export function AddApplicationModal({
               <Input
                 id="applicationDate"
                 type="date"
+                max={new Date().toISOString().split('T')[0]}
                 {...register("applicationDate")}
                 data-testid="input-application-date"
               />
+              {errors.applicationDate && (
+                <p className="text-sm text-destructive">{errors.applicationDate.message}</p>
+              )}
             </div>
           </div>
 

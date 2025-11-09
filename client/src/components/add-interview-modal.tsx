@@ -23,15 +23,18 @@ import { insertInterviewSchema } from "@shared/schema";
 import type { InsertInterview, Application } from "@shared/schema";
 import { z } from "zod";
 import { localDateToUTC } from "@/lib/timezone";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = insertInterviewSchema.omit({
   interviewDate: true,
   durationMinutes: true,
   rating: true,
+  platform: true,
 }).extend({
   interviewDate: z.string(),
-  durationMinutes: z.coerce.number().optional().or(z.literal('')),
+  durationMinutes: z.coerce.number().min(1, "Duration is required"),
   rating: z.coerce.number().min(1).max(5).optional().or(z.literal('')),
+  platform: z.string().min(1, "Platform is required"),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -51,6 +54,7 @@ export function AddInterviewModal({
   applications,
   preselectedApplicationId,
 }: AddInterviewModalProps) {
+  const { toast } = useToast();
   const {
     register,
     handleSubmit,
@@ -85,17 +89,31 @@ export function AddInterviewModal({
 
   const handleFormSubmit = async (data: FormData) => {
     try {
+      // Check if interview is in the past or today
+      const interviewDate = new Date(data.interviewDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      interviewDate.setHours(0, 0, 0, 0);
+      
       const submitData: InsertInterview = {
         ...data,
         interviewDate: localDateToUTC(data.interviewDate),
         durationMinutes: data.durationMinutes ? Number(data.durationMinutes) : undefined,
         rating: data.rating ? Number(data.rating) : undefined,
+        // Automatically set status to completed for past interviews
+        status: interviewDate < today ? "completed" : data.status,
       };
       await onSubmit(submitData);
+      
       reset();
       onOpenChange(false);
     } catch (error) {
       console.error("Form submission error:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to schedule interview. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -165,7 +183,7 @@ export function AddInterviewModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="durationMinutes">Duration (minutes)</Label>
+              <Label htmlFor="durationMinutes">Duration (minutes) *</Label>
               <Input
                 id="durationMinutes"
                 type="number"
@@ -173,16 +191,22 @@ export function AddInterviewModal({
                 placeholder="e.g., 60"
                 data-testid="input-duration"
               />
+              {errors.durationMinutes && (
+                <p className="text-sm text-destructive">{errors.durationMinutes.message}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="platform">Platform</Label>
+              <Label htmlFor="platform">Platform (URL) *</Label>
               <Input
                 id="platform"
                 {...register("platform")}
                 placeholder="e.g., Zoom, Google Meet"
                 data-testid="input-platform"
               />
+              {errors.platform && (
+                <p className="text-sm text-destructive">{errors.platform.message}</p>
+              )}
             </div>
           </div>
 

@@ -102,7 +102,7 @@ export function AddResourceModal({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="algorithms">Algorithms</SelectItem>
+                <SelectItem value="algorithms">Coding</SelectItem>
                 <SelectItem value="system_design">System Design</SelectItem>
                 <SelectItem value="behavioral">Behavioral</SelectItem>
                 <SelectItem value="company_specific">Company Specific</SelectItem>

@@ -106,6 +106,7 @@ export function AddQuestionModal({
                 <SelectItem value="technical">Technical</SelectItem>
                 <SelectItem value="system_design">System Design</SelectItem>
                 <SelectItem value="company_culture">Company Culture</SelectItem>
+                <SelectItem value="experience">Experience</SelectItem>
               </SelectContent>
             </Select>
             {errors.questionType && (
