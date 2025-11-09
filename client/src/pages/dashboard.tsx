@@ -6,6 +6,7 @@ import { ApplicationCard } from "@/components/application-card";
 import { AddApplicationModal } from "@/components/add-application-modal";
 import { AddInterviewModal } from "@/components/add-interview-modal";
 import { ApplicationDetailsModal } from "@/components/application-details-modal";
+import { TimezoneSelector } from "@/components/timezone-selector";
 import { Button } from "@/components/ui/button";
 import { Briefcase, Calendar, TrendingUp, CheckCircle, Plus } from "lucide-react";
 import type { Application, Interview, InsertApplication, InsertInterview } from "@shared/schema";
@@ -174,10 +175,13 @@ export default function Dashboard() {
             Track your job applications and interview progress
           </p>
         </div>
-        <Button onClick={() => setShowAddModal(true)} data-testid="button-add-application">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Application
-        </Button>
+        <div className="flex items-center gap-3">
+          <TimezoneSelector compact />
+          <Button onClick={() => setShowAddModal(true)} data-testid="button-add-application">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Application
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

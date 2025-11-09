@@ -13,8 +13,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Calendar, Clock, Video, Trash2, Pencil } from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import type { Interview } from "@shared/schema";
+import { formatDateTimeInUserTz } from "@/lib/timezone";
 
 interface InterviewTimelineProps {
   interviews: (Interview & { companyName?: string; positionTitle?: string })[];
@@ -126,7 +127,7 @@ export function InterviewTimeline({ interviews, onDelete, onEdit }: InterviewTim
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     <span>
-                      {format(new Date(interview.interviewDate), "MMM d, yyyy 'at' h:mm a")}
+                      {formatDateTimeInUserTz(interview.interviewDate, "MMM d, yyyy 'at' h:mm a")}
                     </span>
                     <span className="text-xs">
                       ({formatDistanceToNow(new Date(interview.interviewDate), { addSuffix: true })})

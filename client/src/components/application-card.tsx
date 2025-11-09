@@ -9,9 +9,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MapPin, DollarSign, Calendar as CalendarIcon, Building2, MoreVertical, Pencil, CalendarPlus, Trash2 } from "lucide-react";
-import { format } from "date-fns";
 import type { Application } from "@shared/schema";
 import { getCompanyLogoUrl } from "@/lib/logo";
+import { formatDateInUserTz } from "@/lib/timezone";
 
 interface ApplicationCardProps {
   application: Application;
@@ -152,7 +152,7 @@ export function ApplicationCard({
         )}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <CalendarIcon className="h-4 w-4" />
-          <span>Applied {format(new Date(application.applicationDate), "MMM d, yyyy")}</span>
+          <span>Applied {formatDateInUserTz(application.applicationDate, "MMM d, yyyy")}</span>
         </div>
       </div>
     </Card>

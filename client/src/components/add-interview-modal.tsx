@@ -22,6 +22,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertInterviewSchema } from "@shared/schema";
 import type { InsertInterview, Application } from "@shared/schema";
 import { z } from "zod";
+import { localDateToUTC } from "@/lib/timezone";
 
 const formSchema = insertInterviewSchema.omit({
   interviewDate: true,
@@ -86,7 +87,7 @@ export function AddInterviewModal({
     try {
       const submitData: InsertInterview = {
         ...data,
-        interviewDate: new Date(`${data.interviewDate}T12:00:00`),
+        interviewDate: localDateToUTC(data.interviewDate),
         durationMinutes: data.durationMinutes ? Number(data.durationMinutes) : undefined,
         rating: data.rating ? Number(data.rating) : undefined,
       };

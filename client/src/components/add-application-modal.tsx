@@ -23,6 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertApplicationSchema } from "@shared/schema";
 import type { InsertApplication } from "@shared/schema";
 import { z } from "zod";
+import { localDateToUTC } from "@/lib/timezone";
 
 const formSchema = insertApplicationSchema.omit({
   applicationDate: true,
@@ -69,7 +70,7 @@ export function AddApplicationModal({
         companyName: data.companyName,
         positionTitle: data.positionTitle,
         status: data.status,
-        applicationDate: new Date(data.applicationDate),
+        applicationDate: localDateToUTC(data.applicationDate),
         jobUrl: data.jobUrl || undefined,
         location: data.location || undefined,
         isRemote: data.isRemote || false,
