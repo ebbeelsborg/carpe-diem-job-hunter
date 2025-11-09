@@ -40,10 +40,6 @@ export default function Interviews() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/interviews"] });
       queryClient.invalidateQueries({ queryKey: ["/api/interviews/upcoming"] });
-      toast({
-        title: "Success",
-        description: "Interview scheduled successfully!",
-      });
     },
     onError: () => {
       toast({
@@ -61,10 +57,6 @@ export default function Interviews() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/interviews"] });
       queryClient.invalidateQueries({ queryKey: ["/api/interviews/upcoming"] });
-      toast({
-        title: "Success",
-        description: "Interview deleted successfully!",
-      });
     },
     onError: () => {
       toast({

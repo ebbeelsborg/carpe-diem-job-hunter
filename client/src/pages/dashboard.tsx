@@ -93,10 +93,6 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/interviews"] });
       queryClient.invalidateQueries({ queryKey: ["/api/interviews/upcoming"] });
       setShowInterviewModal(false);
-      toast({
-        title: "Success",
-        description: "Interview scheduled successfully!",
-      });
     },
     onError: () => {
       toast({
@@ -132,10 +128,6 @@ export default function Dashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/applications/stats"] });
-      toast({
-        title: "Success",
-        description: "Application updated successfully!",
-      });
     },
     onError: () => {
       toast({
@@ -153,10 +145,6 @@ export default function Dashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/applications/stats"] });
-      toast({
-        title: "Success",
-        description: "Application deleted successfully!",
-      });
     },
     onError: () => {
       toast({
