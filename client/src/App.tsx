@@ -10,6 +10,7 @@ import Applications from "@/pages/applications";
 import Interviews from "@/pages/interviews";
 import Resources from "@/pages/resources";
 import Questions from "@/pages/questions";
+import Stats from "@/pages/stats";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/interviews" component={Interviews} />
       <Route path="/resources" component={Resources} />
       <Route path="/questions" component={Questions} />
+      <Route path="/stats" component={Stats} />
       <Route component={NotFound} />
     </Switch>
   );

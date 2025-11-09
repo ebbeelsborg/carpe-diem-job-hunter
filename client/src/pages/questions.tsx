@@ -140,7 +140,8 @@ export default function Questions() {
                         question.questionType === "technical" ? "border-green-500 text-green-700 bg-green-50 capitalize" :
                         question.questionType === "system_design" ? "border-purple-500 text-purple-700 bg-purple-50 capitalize" :
                         question.questionType === "experience" ? "border-pink-500 text-pink-700 bg-pink-50 capitalize" :
-                        "border-orange-500 text-orange-700 bg-orange-50 capitalize"
+                        question.questionType === "company_culture" ? "border-indigo-500 text-indigo-700 bg-indigo-50 capitalize" :
+                        "border-gray-500 text-gray-700 bg-gray-50 capitalize"
                       }
                     >
                       {question.questionType.replace("_", " ")}

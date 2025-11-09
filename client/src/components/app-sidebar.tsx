@@ -1,4 +1,4 @@
-import { Home, Briefcase, Calendar, Book, Lightbulb } from "lucide-react";
+import { Home, Briefcase, Calendar, Book, Lightbulb, BarChart3 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -36,6 +36,11 @@ const items = [
     title: "Questions",
     url: "/questions",
     icon: Lightbulb,
+  },
+  {
+    title: "Stats",
+    url: "/stats",
+    icon: BarChart3,
   },
 ];
 
