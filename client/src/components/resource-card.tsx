@@ -2,12 +2,20 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ExternalLink, BookOpen } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ExternalLink, BookOpen, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import type { Resource } from "@shared/schema";
 
 interface ResourceCardProps {
   resource: Resource;
   onToggleReviewed?: (id: string, isReviewed: boolean) => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 const categoryLabels: Record<string, string> = {
@@ -28,7 +36,7 @@ const categoryColors: Record<string, string> = {
   other: "bg-gray-50 text-gray-700 border-gray-200",
 };
 
-export function ResourceCard({ resource, onToggleReviewed }: ResourceCardProps) {
+export function ResourceCard({ resource, onToggleReviewed, onEdit, onDelete }: ResourceCardProps) {
   return (
     <Card className="p-4 hover-elevate" data-testid={`card-resource-${resource.id}`}>
       <div className="flex items-start gap-3">
@@ -40,9 +48,43 @@ export function ResourceCard({ resource, onToggleReviewed }: ResourceCardProps) 
             <h4 className="font-semibold truncate" data-testid="text-resource-title">
               {resource.title}
             </h4>
-            <Badge className={categoryColors[resource.category]}>
-              {categoryLabels[resource.category]}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge className={categoryColors[resource.category]}>
+                {categoryLabels[resource.category]}
+              </Badge>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    data-testid={`button-menu-${resource.id}`}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {onEdit && (
+                    <DropdownMenuItem
+                      onClick={() => onEdit(resource.id)}
+                      data-testid={`menu-edit-${resource.id}`}
+                    >
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+                  )}
+                  {onDelete && (
+                    <DropdownMenuItem
+                      onClick={() => onDelete(resource.id)}
+                      className="text-destructive focus:text-destructive"
+                      data-testid={`menu-delete-${resource.id}`}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
           {resource.url && (
             <a

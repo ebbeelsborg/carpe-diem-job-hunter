@@ -45,8 +45,10 @@ export default function Dashboard() {
       return await apiRequest("POST", "/api/applications", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/applications/stats"] });
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return key?.startsWith("/api/applications");
+      }});
     },
     onError: () => {
       toast({
@@ -76,8 +78,10 @@ export default function Dashboard() {
       return await apiRequest("POST", "/api/interviews", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/interviews"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/interviews/upcoming"] });
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return key?.startsWith("/api/interviews");
+      }});
       setShowInterviewModal(false);
     },
     onError: () => {
@@ -112,8 +116,10 @@ export default function Dashboard() {
       return await apiRequest("PATCH", `/api/applications/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/applications/stats"] });
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return key?.startsWith("/api/applications");
+      }});
     },
     onError: () => {
       toast({
@@ -129,8 +135,10 @@ export default function Dashboard() {
       return await apiRequest("DELETE", `/api/applications/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/applications/stats"] });
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return key?.startsWith("/api/applications");
+      }});
     },
     onError: () => {
       toast({

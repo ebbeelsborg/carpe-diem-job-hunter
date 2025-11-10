@@ -3,6 +3,12 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -12,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Calendar, Clock, Video, Trash2, Pencil, User, Building2, ExternalLink } from "lucide-react";
+import { Calendar, Clock, Video, Trash2, Pencil, User, Building2, ExternalLink, MoreVertical } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { Interview } from "@shared/schema";
 import { formatDateTimeInUserTz } from "@/lib/timezone";
@@ -148,37 +154,47 @@ export function InterviewTimeline({ interviews, onDelete, onEdit, onViewApplicat
                     >
                       {interviewTypeLabels[interview.interviewType]}
                     </Badge>
-                    {onViewApplication && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onViewApplication(interview.applicationId)}
-                        data-testid={`button-view-application-${interview.id}`}
-                        title="View Application"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {onEdit && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onEdit(interview.id)}
-                        data-testid={`button-edit-${interview.id}`}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {onDelete && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteClick(interview.id)}
-                        data-testid={`button-delete-${interview.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          data-testid={`button-menu-${interview.id}`}
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {onEdit && (
+                          <DropdownMenuItem
+                            onClick={() => onEdit(interview.id)}
+                            data-testid={`menu-edit-${interview.id}`}
+                          >
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                        )}
+                        {onViewApplication && (
+                          <DropdownMenuItem
+                            onClick={() => onViewApplication(interview.applicationId)}
+                            data-testid={`menu-view-application-${interview.id}`}
+                          >
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            View Application
+                          </DropdownMenuItem>
+                        )}
+                        {onDelete && (
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteClick(interview.id)}
+                            className="text-destructive focus:text-destructive"
+                            data-testid={`menu-delete-${interview.id}`}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
                 <div className="space-y-1 text-sm text-muted-foreground">

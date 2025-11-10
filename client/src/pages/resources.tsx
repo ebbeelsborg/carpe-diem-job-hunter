@@ -29,7 +29,10 @@ export default function Resources() {
       return await apiRequest("POST", "/api/resources", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return key?.startsWith("/api/resources");
+      }});
     },
     onError: () => {
       toast({
@@ -45,12 +48,34 @@ export default function Resources() {
       return await apiRequest("PATCH", `/api/resources/${id}`, { isReviewed });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/resources"] });
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return key?.startsWith("/api/resources");
+      }});
     },
     onError: () => {
       toast({
         title: "Error",
         description: "Failed to update resource",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("DELETE", `/api/resources/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return key?.startsWith("/api/resources");
+      }});
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete resource",
         variant: "destructive",
       });
     },
@@ -62,6 +87,15 @@ export default function Resources() {
 
   const handleToggleReviewed = (id: string, isReviewed: boolean) => {
     updateMutation.mutate({ id, isReviewed });
+  };
+
+  const handleEditResource = (id: string) => {
+    // TODO: Implement edit modal
+    console.log("Edit resource:", id);
+  };
+
+  const handleDeleteResource = async (id: string) => {
+    await deleteMutation.mutateAsync(id);
   };
 
   const filteredResources = resources;
@@ -114,6 +148,8 @@ export default function Resources() {
                   key={resource.id}
                   resource={resource}
                   onToggleReviewed={handleToggleReviewed}
+                  onEdit={handleEditResource}
+                  onDelete={handleDeleteResource}
                 />
               ))}
             </div>

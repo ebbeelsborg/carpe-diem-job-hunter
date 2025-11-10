@@ -23,20 +23,10 @@ export default function Interviews() {
     (Interview & { companyName?: string; positionTitle?: string; jobUrl?: string })[]
   >({
     queryKey: ["/api/interviews"],
-    queryFn: async () => {
-      const response = await fetch("/api/interviews");
-      if (!response.ok) throw new Error("Failed to fetch interviews");
-      return response.json();
-    },
   });
 
   const { data: applications = [] } = useQuery<Application[]>({
     queryKey: ["/api/applications"],
-    queryFn: async () => {
-      const response = await fetch("/api/applications");
-      if (!response.ok) throw new Error("Failed to fetch applications");
-      return response.json();
-    },
   });
 
   const createMutation = useMutation({
@@ -44,8 +34,10 @@ export default function Interviews() {
       return await apiRequest("POST", "/api/interviews", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/interviews"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/interviews/upcoming"] });
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return key?.startsWith("/api/interviews");
+      }});
     },
     onError: () => {
       toast({
@@ -61,8 +53,10 @@ export default function Interviews() {
       return await apiRequest("PATCH", `/api/interviews/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/interviews"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/interviews/upcoming"] });
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return key?.startsWith("/api/interviews");
+      }});
       setShowEditModal(false);
     },
     onError: () => {
@@ -79,8 +73,10 @@ export default function Interviews() {
       return await apiRequest("DELETE", `/api/interviews/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/interviews"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/interviews/upcoming"] });
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return key?.startsWith("/api/interviews");
+      }});
     },
     onError: () => {
       toast({

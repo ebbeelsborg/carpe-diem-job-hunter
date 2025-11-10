@@ -46,7 +46,12 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const authHeaders = await getAuthHeaders();
-    const res = await fetch(queryKey.join("/") as string, {
+    
+    // Use first element of queryKey as the URL
+    // We expect queryKey to be ["/api/resource?params"] format
+    const url = queryKey[0] as string;
+    
+    const res = await fetch(url, {
       headers: authHeaders,
       credentials: "include",
     });

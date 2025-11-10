@@ -12,7 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Lightbulb, Star, Search } from "lucide-react";
+import { Plus, Lightbulb, Star, Search, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { Question, InsertQuestion } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -39,7 +45,10 @@ export default function Questions() {
       return await apiRequest("POST", "/api/questions", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return key?.startsWith("/api/questions");
+      }});
     },
     onError: () => {
       toast({
@@ -50,8 +59,36 @@ export default function Questions() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("DELETE", `/api/questions/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return key?.startsWith("/api/questions");
+      }});
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete question",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleAddQuestion = async (data: InsertQuestion) => {
     await createMutation.mutateAsync(data);
+  };
+
+  const handleEditQuestion = (id: string) => {
+    // TODO: Implement edit modal
+    console.log("Edit question:", id);
+  };
+
+  const handleDeleteQuestion = async (id: string) => {
+    await deleteMutation.mutateAsync(id);
   };
 
   return (
@@ -152,6 +189,34 @@ export default function Questions() {
                     ))}
                   </div>
                 </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      data-testid={`button-menu-${question.id}`}
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => handleEditQuestion(question.id)}
+                      data-testid={`menu-edit-${question.id}`}
+                    >
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleDeleteQuestion(question.id)}
+                      className="text-destructive focus:text-destructive"
+                      data-testid={`menu-delete-${question.id}`}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               {question.answerText && (
                 <div className="bg-secondary/50 p-4 rounded-md">
