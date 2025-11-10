@@ -28,22 +28,12 @@ export default function Dashboard() {
   const { data: upcomingInterviews = [] } = useQuery<
     (Interview & { companyName?: string; positionTitle?: string; jobUrl?: string })[]
   >({
-    queryKey: ["/api/interviews/upcoming"],
-    queryFn: async () => {
-      const response = await fetch("/api/interviews/upcoming?limit=5");
-      if (!response.ok) throw new Error("Failed to fetch interviews");
-      return response.json();
-    },
+    queryKey: ["/api/interviews/upcoming?limit=5"],
   });
 
   const { data: recentApplications = [] } = useQuery<Application[]>({
-    queryKey: ["/api/applications", "recent"],
-    queryFn: async () => {
-      const response = await fetch("/api/applications");
-      if (!response.ok) throw new Error("Failed to fetch applications");
-      const data = await response.json();
-      return data.slice(0, 2);
-    },
+    queryKey: ["/api/applications"],
+    select: (data) => data.slice(0, 2),
   });
 
   const { data: allApplications = [] } = useQuery<Application[]>({
