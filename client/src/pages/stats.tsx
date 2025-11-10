@@ -279,9 +279,9 @@ export default function Stats() {
             <CardTitle>Application Status Breakdown</CardTitle>
             <CardDescription>Distribution of your applications by status</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             {statusChartData.length > 0 ? (
-              <ChartContainer config={chartConfig} className="h-[300px]">
+              <ChartContainer config={chartConfig} className="h-[300px] min-w-full">
                 <BarChart data={statusChartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 

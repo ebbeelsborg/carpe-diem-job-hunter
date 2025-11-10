@@ -19,7 +19,7 @@ interface ResourceCardProps {
 }
 
 const categoryLabels: Record<string, string> = {
-  algorithms: "Algorithms",
+  algorithms: "Coding",
   system_design: "System Design",
   behavioral: "Behavioral",
   company_specific: "Company Specific",
