@@ -15,8 +15,10 @@ Preferred communication style: Simple, everyday language.
 **UI/UX Preferences**:
 - Application cards use three-dot dropdown menus for actions (Edit, Schedule Interview, Delete) instead of inline buttons - saves space and provides cleaner interface
 - Entire application card is clickable to view details
+- Interview, resource, and question cards use three-dot dropdown menus for Edit and Delete actions
 - Dashboard stat cards have subtle hover highlight effects for better interactivity
 - Silent operations: No success toasts after CRUD operations (only error messages shown)
+- Edit modals allow in-place editing without page navigation - improved workflow efficiency
 
 ## System Architecture
 
@@ -24,9 +26,9 @@ Preferred communication style: Simple, everyday language.
 
 **Framework & Build**: React 18 with TypeScript, bundled using Vite. The application uses a client-side routing approach with `wouter` for lightweight navigation without full page reloads.
 
-**Component Strategy**: Built on shadcn/ui (Radix UI primitives) providing accessible, customizable components. Custom components are organized by feature (applications, interviews, resources, questions) with shared UI components in a dedicated directory. The design system follows a "New York" style variant with consistent spacing, typography, and color tokens.
+**Component Strategy**: Built on shadcn/ui (Radix UI primitives) providing accessible, customizable components. Custom components are organized by feature (applications, interviews, resources, questions) with shared UI components in a dedicated directory. Edit modals (EditResourceModal, EditQuestionModal) enable in-place editing using react-hook-form with Controller for custom checkbox components. The design system follows a "New York" style variant with consistent spacing, typography, and color tokens.
 
-**State Management**: TanStack Query (React Query) handles server state with automatic caching, background refetching disabled for data stability. Each resource type (applications, interviews, resources, questions) has dedicated query keys enabling granular cache invalidation. Local UI state managed with React hooks.
+**State Management**: TanStack Query (React Query) handles server state with automatic caching, background refetching disabled for data stability. Each resource type (applications, interviews, resources, questions) has dedicated query keys enabling granular cache invalidation using predicate functions to match URL prefixes. Edit modals properly clear selected items when closed to prevent stale state. Local UI state managed with React hooks.
 
 **Design System**: Tailwind CSS with custom configuration extending base colors and spacing. CSS variables drive theming (light mode implemented, dark mode structure present). Typography uses Inter/DM Sans for clean, modern aesthetic. Component styling emphasizes subtle shadows, borders, and hover states for depth without visual clutter.
 
@@ -95,7 +97,7 @@ Protected Routes (require authentication):
 
 **Migration Strategy**: Drizzle Kit manages schema migrations with `db:push` command. Migration files stored in `migrations/` directory for version control and deployment tracking.
 
-**Security**: All storage operations require `userId` parameter and filter queries by user. PATCH endpoints use field whitelisting to prevent unauthorized updates. This ensures multi-tenant data isolation.
+**Security**: All storage operations require `userId` parameter and filter queries by user. PATCH endpoints use partial updates via Drizzle ORM's `.set()` method, safely updating only provided fields. Edit modals send only form fields to backend, preserving non-form database fields like `isReviewed` and `isFavorite`. This ensures multi-tenant data isolation and prevents unintended data overwrites.
 
 ### External Dependencies
 
@@ -111,8 +113,10 @@ Protected Routes (require authentication):
 
 **Form Management**:
 - React Hook Form with Zod resolver - Type-safe form validation
+- Controller component for integrating custom UI components (Checkbox) with form state
 - Drizzle-Zod integration generates validation schemas from database schema
-- Rationale: Reduces boilerplate, ensures form validation matches database constraints
+- Edit modals implement partial updates - only send changed fields to preserve other database values
+- Rationale: Reduces boilerplate, ensures form validation matches database constraints, enables safe partial updates
 
 **Styling**:
 - Tailwind CSS with PostCSS - Utility-first CSS framework
