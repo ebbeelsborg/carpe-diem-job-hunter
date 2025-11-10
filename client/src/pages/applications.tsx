@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { ApplicationCard } from "@/components/application-card";
 import { AddApplicationModal } from "@/components/add-application-modal";
@@ -28,17 +28,27 @@ export default function Applications() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { toast } = useToast();
 
-  const { data: applications = [], isLoading } = useQuery<Application[]>({
-    queryKey: ["/api/applications", statusFilter, searchTerm],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (statusFilter !== "all") params.append("status", statusFilter);
-      if (searchTerm) params.append("search", searchTerm);
-      const response = await fetch(`/api/applications?${params}`);
-      if (!response.ok) throw new Error("Failed to fetch applications");
-      return response.json();
-    },
+  // Build query URL with parameters
+  const queryParams = new URLSearchParams();
+  if (statusFilter !== "all") queryParams.append("status", statusFilter);
+  if (searchTerm) queryParams.append("search", searchTerm);
+  const queryString = queryParams.toString();
+  const queryUrl = `/api/applications${queryString ? `?${queryString}` : ""}`;
+
+  const { data: applications = [], isLoading, error } = useQuery<Application[]>({
+    queryKey: [queryUrl],
   });
+
+  // Show error toast if query fails
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error loading applications",
+        description: error instanceof Error ? error.message : "Failed to fetch applications",
+      });
+    }
+  }, [error, toast]);
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertApplication) => {
