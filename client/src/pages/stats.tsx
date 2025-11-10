@@ -310,9 +310,9 @@ export default function Stats() {
             <CardTitle>Applications Over Time</CardTitle>
             <CardDescription>{timeRangeChartLabel}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             {timelineData.length > 0 ? (
-              <ChartContainer config={chartConfig} className="h-[300px]">
+              <ChartContainer config={chartConfig} className="h-[300px] min-w-full">
                 <LineChart data={timelineData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
