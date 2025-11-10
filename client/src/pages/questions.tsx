@@ -23,16 +23,15 @@ export default function Questions() {
   const [showAddModal, setShowAddModal] = useState(false);
   const { toast } = useToast();
 
+  // Build query URL with parameters
+  const queryParams = new URLSearchParams();
+  if (typeFilter !== "all") queryParams.append("type", typeFilter);
+  if (searchTerm) queryParams.append("search", searchTerm);
+  const queryString = queryParams.toString();
+  const queryUrl = `/api/questions${queryString ? `?${queryString}` : ""}`;
+
   const { data: questions = [], isLoading } = useQuery<Question[]>({
-    queryKey: ["/api/questions", typeFilter, searchTerm],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (typeFilter !== "all") params.append("type", typeFilter);
-      if (searchTerm) params.append("search", searchTerm);
-      const response = await fetch(`/api/questions?${params}`);
-      if (!response.ok) throw new Error("Failed to fetch questions");
-      return response.json();
-    },
+    queryKey: [queryUrl],
   });
 
   const createMutation = useMutation({

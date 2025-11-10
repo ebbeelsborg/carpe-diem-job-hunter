@@ -14,15 +14,14 @@ export default function Resources() {
   const [showAddModal, setShowAddModal] = useState(false);
   const { toast } = useToast();
 
+  // Build query URL with parameters
+  const queryParams = new URLSearchParams();
+  if (activeTab !== "all") queryParams.append("category", activeTab);
+  const queryString = queryParams.toString();
+  const queryUrl = `/api/resources${queryString ? `?${queryString}` : ""}`;
+
   const { data: resources = [], isLoading } = useQuery<Resource[]>({
-    queryKey: ["/api/resources", activeTab],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (activeTab !== "all") params.append("category", activeTab);
-      const response = await fetch(`/api/resources?${params}`);
-      if (!response.ok) throw new Error("Failed to fetch resources");
-      return response.json();
-    },
+    queryKey: [queryUrl],
   });
 
   const createMutation = useMutation({
