@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 import { pgTable, text, varchar, timestamp, integer, boolean, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -57,7 +57,7 @@ export const questionTypeEnum = pgEnum("question_type", [
 
 export const applications = pgTable("applications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   companyName: text("company_name").notNull(),
   positionTitle: text("position_title").notNull(),
   jobUrl: text("job_url"),
@@ -75,7 +75,7 @@ export const applications = pgTable("applications", {
 
 export const interviews = pgTable("interviews", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  applicationId: varchar("application_id").notNull(),
+  applicationId: varchar("application_id").notNull().references(() => applications.id, { onDelete: "cascade" }),
   interviewType: interviewTypeEnum("interview_type").notNull(),
   interviewDate: timestamp("interview_date").notNull(),
   durationMinutes: integer("duration_minutes"),
@@ -92,19 +92,19 @@ export const interviews = pgTable("interviews", {
 
 export const resources = pgTable("resources", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   url: text("url"),
   category: resourceCategoryEnum("category").notNull(),
   notes: text("notes"),
   isReviewed: boolean("is_reviewed").default(false),
-  linkedApplicationId: varchar("linked_application_id"),
+  linkedApplicationId: varchar("linked_application_id").references(() => applications.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
 export const questions = pgTable("questions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   questionText: text("question_text").notNull(),
   answerText: text("answer_text"),
   questionType: questionTypeEnum("question_type").notNull(),
