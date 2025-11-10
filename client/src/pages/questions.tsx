@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { AddQuestionModal } from "@/components/add-question-modal";
+import { EditQuestionModal } from "@/components/edit-question-modal";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,8 @@ export default function Questions() {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const { toast } = useToast();
 
   // Build query URL with parameters
@@ -59,6 +62,26 @@ export default function Questions() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertQuestion> }) => {
+      return await apiRequest("PATCH", `/api/questions/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return key?.startsWith("/api/questions");
+      }});
+      setShowEditModal(false);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update question",
+        variant: "destructive",
+      });
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       return await apiRequest("DELETE", `/api/questions/${id}`);
@@ -83,8 +106,22 @@ export default function Questions() {
   };
 
   const handleEditQuestion = (id: string) => {
-    // TODO: Implement edit modal
-    console.log("Edit question:", id);
+    const question = questions.find(q => q.id === id);
+    if (question) {
+      setSelectedQuestion(question);
+      setShowEditModal(true);
+    }
+  };
+
+  const handleUpdateQuestion = async (id: string, data: Partial<InsertQuestion>) => {
+    await updateMutation.mutateAsync({ id, data });
+  };
+
+  const handleCloseEditModal = (open: boolean) => {
+    setShowEditModal(open);
+    if (!open) {
+      setSelectedQuestion(null);
+    }
   };
 
   const handleDeleteQuestion = async (id: string) => {
@@ -233,6 +270,12 @@ export default function Questions() {
         open={showAddModal}
         onOpenChange={setShowAddModal}
         onSubmit={handleAddQuestion}
+      />
+      <EditQuestionModal
+        open={showEditModal}
+        onOpenChange={handleCloseEditModal}
+        onSubmit={handleUpdateQuestion}
+        question={selectedQuestion}
       />
     </div>
   );

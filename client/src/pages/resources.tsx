@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { ResourceCard } from "@/components/resource-card";
 import { AddResourceModal } from "@/components/add-resource-modal";
+import { EditResourceModal } from "@/components/edit-resource-modal";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, BookOpen } from "lucide-react";
@@ -12,6 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 export default function Resources() {
   const [activeTab, setActiveTab] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
   const { toast } = useToast();
 
   // Build query URL with parameters
@@ -43,7 +46,7 @@ export default function Resources() {
     },
   });
 
-  const updateMutation = useMutation({
+  const toggleReviewedMutation = useMutation({
     mutationFn: async ({ id, isReviewed }: { id: string; isReviewed: boolean }) => {
       return await apiRequest("PATCH", `/api/resources/${id}`, { isReviewed });
     },
@@ -52,6 +55,26 @@ export default function Resources() {
         const key = query.queryKey[0] as string;
         return key?.startsWith("/api/resources");
       }});
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update resource",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertResource> }) => {
+      return await apiRequest("PATCH", `/api/resources/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ predicate: (query) => {
+        const key = query.queryKey[0] as string;
+        return key?.startsWith("/api/resources");
+      }});
+      setShowEditModal(false);
     },
     onError: () => {
       toast({
@@ -86,12 +109,26 @@ export default function Resources() {
   };
 
   const handleToggleReviewed = (id: string, isReviewed: boolean) => {
-    updateMutation.mutate({ id, isReviewed });
+    toggleReviewedMutation.mutate({ id, isReviewed });
   };
 
   const handleEditResource = (id: string) => {
-    // TODO: Implement edit modal
-    console.log("Edit resource:", id);
+    const resource = resources.find(r => r.id === id);
+    if (resource) {
+      setSelectedResource(resource);
+      setShowEditModal(true);
+    }
+  };
+
+  const handleUpdateResource = async (id: string, data: Partial<InsertResource>) => {
+    await updateMutation.mutateAsync({ id, data });
+  };
+
+  const handleCloseEditModal = (open: boolean) => {
+    setShowEditModal(open);
+    if (!open) {
+      setSelectedResource(null);
+    }
   };
 
   const handleDeleteResource = async (id: string) => {
@@ -161,6 +198,12 @@ export default function Resources() {
         open={showAddModal}
         onOpenChange={setShowAddModal}
         onSubmit={handleAddResource}
+      />
+      <EditResourceModal
+        open={showEditModal}
+        onOpenChange={handleCloseEditModal}
+        onSubmit={handleUpdateResource}
+        resource={selectedResource}
       />
     </div>
   );
