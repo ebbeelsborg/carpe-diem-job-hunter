@@ -2,6 +2,9 @@
 
 A full-stack web application to help job seekers manage their interview preparation process. Track applications, schedule interviews, organize study resources, and maintain a question bank - all in one place.
 
+## Usage
+Reach out to me if you want to try it out with a demo account. You can also sign up with your own email.
+
 ## Features
 
 - **Application Tracking** - Monitor job applications through every stage (applied, phone screen, technical, onsite, offer, etc.)
